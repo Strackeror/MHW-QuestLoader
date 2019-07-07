@@ -32,10 +32,17 @@ public:
 		}
 	}
 
+
 	int file_id;
 	int starcount = 10;
+	std::string questPath;
 
-	Quest(int id) : file_id(id) { }
+	Quest(int id) : file_id(id) 
+	{
+		char buf[250];
+		sprintf_s(buf, "quest\\questData_%05d", id);
+		questPath = buf;
+	}
 };
 
 std::vector<Quest> Quest::Quests;
@@ -109,6 +116,23 @@ int __fastcall GetQuestCategory(int questID, int unkn)
 	return originalGetQuestCategory(questID, unkn);
 }
 
+typedef void* (__fastcall* tLoadFile)(void* this_ptr, void* loaderPtr, char* path, int flag);
+tLoadFile originalLoadFile;
+void* __fastcall LoadFilePath(void* this_ptr, void* loaderPtr, char* path, int flag)
+{
+	void* ret = originalLoadFile(this_ptr, loaderPtr, path, flag);
+	if (loaderPtr == (void*)0x143bd8a38) 
+	{
+		for (auto quest : Quest::Quests) 
+		{
+			if (quest.questPath == path) {
+				*(int*)((char*)ret + 0xa8 + 0x70) = quest.file_id;
+				std::cout << "Overrode id to " << quest.file_id << " in path " << path << "\n";
+			}
+		}
+	}
+	return ret;
+}
 
 void Initialize()
 {
@@ -136,6 +160,9 @@ void Initialize()
 	
 	MH_CreateHook((void*)0x147735140, &CheckStarAndCategory, (LPVOID*)& originalCheckStarAndCategory);
 	MH_EnableHook((void*)0x147735140);
+
+	MH_CreateHook((void*)0x14d10bfe0, &LoadFilePath, (LPVOID*)&originalLoadFile);
+	MH_EnableHook((void*)0x14d10bfe0);
 
 }
 
