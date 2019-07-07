@@ -134,6 +134,44 @@ void* __fastcall LoadFilePath(void* this_ptr, void* loaderPtr, char* path, int f
 	return ret;
 }
 
+typedef void(__fastcall* tGetMonsterString)(char* buf, size_t size, unsigned int id);
+tGetMonsterString originalGetString;
+
+void __fastcall GetMonsterString(char *buf, size_t size, unsigned int id)
+{
+	originalGetString(buf, size, id % 256);
+	if (id >= 256) 
+	{
+		id = id >> 16;
+		sprintf_s(buf + 6, size - 6, "%02d", id);
+		std::cout << "mod variant called:" << id << " return value : " << buf << "\n";
+	}
+}
+
+static int next_id = 0;
+typedef void* (__fastcall* tCreateMonster)(void* this_ptr, unsigned int monster_id, unsigned int variant, char flag);
+tCreateMonster originalCreateMonster;
+void* __fastcall CreateMonster(void* this_ptr, unsigned int monster_id, unsigned int variant, char flag)
+{
+	std::cout << "Creating Monster : " << monster_id << ":" << variant << " flags " << (int)flag << "\n";
+	if (monster_id >= 256)
+	{
+		next_id = monster_id >> 16;
+	}
+	return originalCreateMonster(this_ptr, monster_id % 256, variant, flag);
+}
+
+typedef void* (__fastcall* tInitMonster)(void* this_ptr, unsigned int monster_id, unsigned int variant);
+tInitMonster originalInitMonster;
+void* __fastcall InitMonster(void* this_ptr, unsigned int monster_id, unsigned int variant)
+{	
+	if (next_id) {
+		variant = next_id;
+		next_id = 0;
+	}
+	return originalInitMonster(this_ptr, monster_id, variant);
+}
+
 void Initialize()
 {
 	char syspath[MAX_PATH];
@@ -163,6 +201,17 @@ void Initialize()
 
 	MH_CreateHook((void*)0x14d10bfe0, &LoadFilePath, (LPVOID*)&originalLoadFile);
 	MH_EnableHook((void*)0x14d10bfe0);
+
+	MH_CreateHook((void*)0x149ed99b0, &GetMonsterString, (LPVOID*)&originalGetString);
+	MH_EnableHook((void*)0x149ed99b0);
+
+	MH_CreateHook((void*)0x14aff5c70, &CreateMonster, (LPVOID*)&originalCreateMonster);
+	MH_EnableHook((void*)0x14aff5c70);
+
+	MH_CreateHook((void*)0x1418d2bb0, &InitMonster, (LPVOID*)&originalInitMonster);
+	MH_EnableHook((void*)0x1418d2bb0);
+
+	std::cout << "Hooking OK\n";
 
 }
 
