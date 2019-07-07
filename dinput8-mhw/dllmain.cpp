@@ -21,14 +21,13 @@ public:
 		for (auto& entry : std::filesystem::directory_iterator("nativePC/quest"))
 		{
 			std::string name = entry.path().filename().string();
+			if (entry.path().filename().extension().string() != ".mib") continue;
 
-			std::cout << "checking file: " << "\"" << name << "\"" << std::endl;
 			int id;
-			if (sscanf_s(name.c_str(), "questData_%5d.mib", &id) != 1) continue;
-			std::cout << "found id" << id << std::endl;
-			if (id < 90000 || id > 99999) continue;
+			if (sscanf_s(name.c_str(), "questData_%d.mib", &id) != 1) continue;
+			if (id < 90000) continue;
 
-			std::cout << "found quest:" << id << std::endl;
+			std::cout << "found quest: " << id << std::endl;
 			Quests.push_back(Quest(id));
 		}
 	}
@@ -49,7 +48,7 @@ bool __fastcall QuestUnlocked(void* this_ptr, unsigned int id)
 	for (auto quest : Quest::Quests)
 	{
 		if (quest.file_id == id) {
-			std::cout << "QuestUnlocked" << id << std::endl;
+			//std::cout << "QuestUnlocked" << id << std::endl;
 			return true;
 		}
 	}
