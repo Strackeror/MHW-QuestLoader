@@ -9,8 +9,11 @@ def move_subspecies(monster_path : str, old_variant_id : int, new_variant_id : i
     monster_path_name = os.path.basename(monster_path)
     lst = glob.glob(os.path.join(monster_path, "{0:02d}\\**".format(old_variant_id)), recursive=True)
     progress['maximum'] = len(lst)
+    progress.start()
+    progress['value'] = 0
     for filename in lst:
-        progress.step()
+        progress['value'] += 1
+        win.update_idletasks()
         if not os.path.isfile(filename): 
             continue
         aob = open(filename, 'rb').read()
@@ -27,7 +30,7 @@ def move_subspecies(monster_path : str, old_variant_id : int, new_variant_id : i
         for (r, w) in replacements:
             aob = aob.replace(r.encode('ascii'), w.encode('ascii'))
         local_filename = os.path.relpath(filename, start=monster_path)
-        local_filename.replace(
+        local_filename = local_filename.replace(
             f"{old_variant_id:02d}\\mod\\{monster_path_name}_{old_variant_id:02d}",
             f"{new_variant_id:02d}\\mod\\{monster_path_name}_{new_variant_id:02d}"
                 )
@@ -35,6 +38,8 @@ def move_subspecies(monster_path : str, old_variant_id : int, new_variant_id : i
         final_filename = os.path.join(monster_path, local_filename)
         os.makedirs(os.path.dirname(final_filename), exist_ok=True)
         open(final_filename, 'wb').write(aob)
+    progress.stop()
+    repopulate_comboboxes()
 
 targets = [f"{i:02d}" for i in range(100)]
 
@@ -67,12 +72,12 @@ def browse():
     repopulate_comboboxes()
 
 def launch():
-    move_subspecies(entry.get(), int(source_variant), int(target_variant))
+    move_subspecies(entry.get(), int(source_variant.get()), int(target_variant.get()))
 
-window = Tk()
-window.title("Subspecies resource changer")
-window.grid_columnconfigure(0, weight=1)
-window = Frame(window)
+win = Tk()
+win.title("Subspecies resource changer")
+win.grid_columnconfigure(0, weight=1)
+window = Frame(win)
 window.grid(column = 0, row= 0, padx=2, pady=2, sticky='NSEW')
 window.grid_columnconfigure(4, weight=1)
 window.grid_rowconfigure(3, weight=1)
@@ -93,7 +98,7 @@ target_variant.grid(column = 3, row = 1, sticky = W)
 monster_label = Label(window, text="Monster ID:")
 monster_label.grid(column = 5, row=1, sticky="W")
 
-progress = Progressbar(window)
+progress = Progressbar(window, mode="determinate")
 progress.grid(column = 0, columnspan=6, row=2, pady=2, sticky='EW')
 
 launch_button = Button(window, text="Copy Subspecies", command=launch)
