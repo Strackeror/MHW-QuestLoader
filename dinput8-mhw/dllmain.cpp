@@ -6,11 +6,15 @@
 #include <fstream>
 #include <filesystem>
 #include <vector>
+#include <string>
+#include <sstream>
 
 #include "MinHook.h"
+#include "log.h"
 
 typedef HRESULT(WINAPI* tDirectInput8Create)(HINSTANCE inst_handle, DWORD version, const IID& r_iid, LPVOID* out_wrapper, LPUNKNOWN p_unk);
 tDirectInput8Create oDirectInput8Create = nullptr;
+
 
 
 class Quest {
@@ -52,10 +56,11 @@ typedef bool(__fastcall* tCheckIfQuestIsUnlocked)(void* this_ptr, unsigned int i
 tCheckIfQuestIsUnlocked originalQuestUnlocked;
 bool __fastcall QuestUnlocked(void* this_ptr, unsigned int id)
 {
+	LOG(INFO) << "QuestUnlocked";
 	for (auto quest : Quest::Quests)
 	{
 		if (quest.file_id == id) {
-			//std::cout << "QuestUnlocked" << id << std::endl;
+			LOG(INFO) << "QuestUnlocked : " << id;
 			return true;
 		}
 	}
@@ -68,7 +73,7 @@ tGetQuestCount originalQuestCount;
 
 int __fastcall GetQuestCount()
 {
-	//std::cout << "QuestCount" << std::endl;
+	LOG(INFO) << "QuestCount";
 	return originalQuestCount() + Quest::Quests.size();
 }
 
@@ -80,7 +85,7 @@ int __fastcall GetQuestFromIndex(void* this_ptr, int index)
 {
 	if (index >= originalQuestCount())
 	{
-		//std::cout << "QuestFromIndex" << index << ":" << Quest::Quests[index - originalQuestCount()].file_id << std::endl;
+		LOG(INFO) << "QuestFromIndex :" << index << ":" << Quest::Quests[index - originalQuestCount()].file_id;
 		return Quest::Quests[index - originalQuestCount()].file_id;
 	}
 	return originalQuestFromIndex(this_ptr, index);
@@ -91,6 +96,8 @@ tCheckStarAndCategory originalCheckStarAndCategory;
 
 bool __fastcall CheckStarAndCategory(int questID, int category, int starCount)
 {
+	LOG(INFO) << "CheckStarCategory " << questID;
+	auto ret = originalCheckStarAndCategory(questID, category, starCount);
 	for (auto quest : Quest::Quests)
 	{
 		if (questID != quest.file_id) continue;
@@ -98,36 +105,37 @@ bool __fastcall CheckStarAndCategory(int questID, int category, int starCount)
 		if (category == 1 && starCount == quest.starcount) return true;
 		return false;
 	}
-	return originalCheckStarAndCategory(questID, category, starCount);
+	return ret;
 }
 
-typedef int(__fastcall* tGetQuestCategory)(int questID, int unkn);
+typedef long long(__fastcall* tGetQuestCategory)(int questID, int unkn);
 tGetQuestCategory originalGetQuestCategory;
 
-int __fastcall GetQuestCategory(int questID, int unkn)
+long long __fastcall GetQuestCategory(int questID, int unkn)
 {
-	for (auto quest : Quest::Quests)
-	{
-		if (questID == quest.file_id) {
-			//std::cout << "QuestCategory" << questID << std::endl;
-			return 1;
-		}
+	LOG(INFO) << "QuestCategory " << questID;
+	auto ret = originalGetQuestCategory(questID, unkn);
+	if (questID > 90000) {
+		return 1;
 	}
-	return originalGetQuestCategory(questID, unkn);
+	return ret;
+	LOG(INFO) << "QuestCategory " << questID << "end";
 }
 
 typedef void* (__fastcall* tLoadFile)(void* this_ptr, void* loaderPtr, char* path, int flag);
 tLoadFile originalLoadFile;
 void* __fastcall LoadFilePath(void* this_ptr, void* loaderPtr, char* path, int flag)
 {
+	LOG(INFO) << "LoadFile :" << path;
 	void* ret = originalLoadFile(this_ptr, loaderPtr, path, flag);
+
 	if (loaderPtr == (void*)0x143bd8a38) 
 	{
 		for (auto quest : Quest::Quests) 
 		{
 			if (quest.questPath == path) {
 				*(int*)((char*)ret + 0xa8 + 0x70) = quest.file_id;
-				std::cout << "Overrode id to " << quest.file_id << " in path " << path << "\n";
+				LOG(INFO) << "Overrode id to " << quest.file_id << " in path " << path;
 			}
 		}
 	}
@@ -139,37 +147,61 @@ tGetMonsterString originalGetString;
 
 void __fastcall GetMonsterString(char *buf, size_t size, unsigned int id)
 {
+	LOG(INFO) << "MonsterString ";
 	originalGetString(buf, size, id % 256);
 	if (id >= 256) 
 	{
 		id = id >> 16;
 		sprintf_s(buf + 6, size - 6, "%02d", id);
-		std::cout << "mod variant called:" << id << " return value : " << buf << "\n";
+		LOG(INFO) << "mod variant called:" << id << " return value : " << buf;
 	}
 }
+
+tGetMonsterString originalGetString2;
+void __fastcall GetString2(char* buf, int monster_id, unsigned int id)
+{
+	originalGetString2(buf, monster_id % 256, id);
+}
+
 
 static int next_id = 0;
-typedef void* (__fastcall* tCreateMonster)(void* this_ptr, unsigned int monster_id, unsigned int variant, char flag);
+typedef void (__fastcall* tCreateMonster)(void* this_ptr, void *unkn, void *ptr, char flag);
 tCreateMonster originalCreateMonster;
-void* __fastcall CreateMonster(void* this_ptr, unsigned int monster_id, unsigned int variant, char flag)
+void __fastcall CreateMonster(void* this_ptr, void* unkn, void* ptr, char flag)
 {
-	std::cout << "Creating Monster : " << monster_id << ":" << variant << " flags " << (int)flag << "\n";
-	if (monster_id >= 256)
+	auto monster_id_ptr = (int*)((char*)this_ptr + 0x158);
+	LOG(INFO) << "Creating Monster : " <<
+		(*monster_id_ptr & 0xFFFF) << ":" << (*monster_id_ptr >> 16) << " flags " << (int)flag;
+	if (*monster_id_ptr >= 256)
 	{
-		next_id = monster_id >> 16;
+		next_id = *monster_id_ptr >> 16;
+		*monster_id_ptr &= 0xFFFF;
 	}
-	return originalCreateMonster(this_ptr, monster_id % 256, variant, flag);
+	return originalCreateMonster(this_ptr, unkn, ptr, flag);
 }
 
-typedef void* (__fastcall* tInitMonster)(void* this_ptr, unsigned int monster_id, unsigned int variant);
-tInitMonster originalInitMonster;
-void* __fastcall InitMonster(void* this_ptr, unsigned int monster_id, unsigned int variant)
-{	
+typedef void* (__fastcall* tConstructMonster)(void* this_ptr, unsigned int monster_id, unsigned int variant);
+tConstructMonster originalConstructMonster;
+void* __fastcall ConstructMonster(void* this_ptr, unsigned int monster_id, unsigned int variant)
+{
+	LOG(INFO) << "Setting Subspecies :" << next_id;
 	if (next_id) {
 		variant = next_id;
 		next_id = 0;
 	}
-	return originalInitMonster(this_ptr, monster_id, variant);
+	return originalConstructMonster(this_ptr, monster_id, variant);
+}
+
+typedef void(__fastcall* tSpawnLogic)(void* this_ptr, unsigned int id);
+tSpawnLogic originalSpawnLogic;
+void(__fastcall SpawnLogic)(void* this_ptr, unsigned int id)
+{
+	LOG(INFO) << "SpwanLogic  " << id;
+	auto base_id = *(int*)((char*)this_ptr + 0x158);
+	*(int*)((char*)this_ptr + 0x158) = base_id & 0xFFFF;
+	originalSpawnLogic(this_ptr, id);
+	*(int*)((char*)this_ptr + 0x158) = base_id;
+
 }
 
 void Initialize()
@@ -184,7 +216,7 @@ void Initialize()
 
 	std::cout << "Hooking\n";
 	MH_Initialize();
-	MH_CreateHook((void*)0x14862cda0, &QuestUnlocked, (LPVOID *) &originalQuestUnlocked);
+	MH_CreateHook((void*)0x14862cda0, &QuestUnlocked, (LPVOID *) &originalQuestUnlocked);	
 	MH_EnableHook((void*)0x14862cda0);
 
 	MH_CreateHook((void*)0x14862d1e0, &GetQuestCount, (LPVOID*)& originalQuestCount);
@@ -205,10 +237,14 @@ void Initialize()
 	MH_CreateHook((void*)0x149ed99b0, &GetMonsterString, (LPVOID*)&originalGetString);
 	MH_EnableHook((void*)0x149ed99b0);
 
-	MH_CreateHook((void*)0x14aff5c70, &CreateMonster, (LPVOID*)&originalCreateMonster);
-	MH_EnableHook((void*)0x14aff5c70);
 
-	MH_CreateHook((void*)0x1418d2bb0, &InitMonster, (LPVOID*)&originalInitMonster);
+	MH_CreateHook((void*)0x14b210f90, &SpawnLogic, (LPVOID*)& originalSpawnLogic);
+	MH_EnableHook((void*)0x14b210f90);
+
+	MH_CreateHook((void*)0x14b210830, &CreateMonster, (LPVOID*)& originalCreateMonster);
+	MH_EnableHook((void*)0x14b210830);
+
+	MH_CreateHook((void*)0x1418d2bb0, &ConstructMonster, (LPVOID*)& originalConstructMonster);
 	MH_EnableHook((void*)0x1418d2bb0);
 
 	std::cout << "Hooking OK\n";

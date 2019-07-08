@@ -67,7 +67,7 @@ def browse():
     repopulate_comboboxes()
 
 def launch():
-    print(entry.get(), source_variant.get(), target_variant.get())
+    move_subspecies(entry.get(), int(source_variant), int(target_variant))
 
 window = Tk()
 window.title("Subspecies resource changer")
