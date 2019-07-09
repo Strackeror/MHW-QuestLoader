@@ -15,11 +15,10 @@
 typedef HRESULT(WINAPI* tDirectInput8Create)(HINSTANCE inst_handle, DWORD version, const IID& r_iid, LPVOID* out_wrapper, LPUNKNOWN p_unk);
 tDirectInput8Create oDirectInput8Create = nullptr;
 
-
-
 class Quest {
 public:
 	static std::vector<Quest> Quests;
+	static int size;
 	static void PopulateQuests() 
 	{
 		for (auto& entry : std::filesystem::directory_iterator("nativePC/quest"))
@@ -31,9 +30,10 @@ public:
 			if (sscanf_s(name.c_str(), "questData_%d.mib", &id) != 1) continue;
 			if (id < 90000) continue;
 
-			std::cout << "found quest: " << id << std::endl;
+			LOG(WARN) << "found quest: " << id;
 			Quests.push_back(Quest(id));
 		}
+		size = Quest::Quests.size();
 	}
 
 
@@ -50,13 +50,14 @@ public:
 };
 
 std::vector<Quest> Quest::Quests;
+int Quest::size;
 
 typedef bool(__fastcall* tCheckIfQuestIsUnlocked)(void* this_ptr, unsigned int id);
 
 tCheckIfQuestIsUnlocked originalQuestUnlocked;
 bool __fastcall QuestUnlocked(void* this_ptr, unsigned int id)
 {
-	LOG(INFO) << "QuestUnlocked";
+	//LOG(INFO) << "QuestUnlocked";
 	for (auto quest : Quest::Quests)
 	{
 		if (quest.file_id == id) {
@@ -73,8 +74,8 @@ tGetQuestCount originalQuestCount;
 
 int __fastcall GetQuestCount()
 {
-	LOG(INFO) << "QuestCount";
-	return originalQuestCount() + Quest::Quests.size();
+	//LOG(INFO) << "QuestCount";
+	return originalQuestCount() + Quest::size;
 }
 
 
@@ -113,20 +114,20 @@ tGetQuestCategory originalGetQuestCategory;
 
 long long __fastcall GetQuestCategory(int questID, int unkn)
 {
-	LOG(INFO) << "QuestCategory " << questID;
+	//LOG(INFO) << "QuestCategory " << questID;
 	auto ret = originalGetQuestCategory(questID, unkn);
 	if (questID > 90000) {
 		return 1;
 	}
 	return ret;
-	LOG(INFO) << "QuestCategory " << questID << "end";
+	//LOG(INFO) << "QuestCategory " << questID << "end";
 }
 
 typedef void* (__fastcall* tLoadFile)(void* this_ptr, void* loaderPtr, char* path, int flag);
 tLoadFile originalLoadFile;
 void* __fastcall LoadFilePath(void* this_ptr, void* loaderPtr, char* path, int flag)
 {
-	LOG(INFO) << "LoadFile :" << path;
+	//LOG(INFO) << "LoadFile :" << path;
 	void* ret = originalLoadFile(this_ptr, loaderPtr, path, flag);
 
 	if (loaderPtr == (void*)0x143bd8a38) 
@@ -142,6 +143,7 @@ void* __fastcall LoadFilePath(void* this_ptr, void* loaderPtr, char* path, int f
 	return ret;
 }
 
+/*
 typedef void(__fastcall* tGetMonsterString)(char* buf, size_t size, unsigned int id);
 tGetMonsterString originalGetString;
 
@@ -156,12 +158,7 @@ void __fastcall GetMonsterString(char *buf, size_t size, unsigned int id)
 		LOG(INFO) << "mod variant called:" << id << " return value : " << buf;
 	}
 }
-
-tGetMonsterString originalGetString2;
-void __fastcall GetString2(char* buf, int monster_id, unsigned int id)
-{
-	originalGetString2(buf, monster_id % 256, id);
-}
+*/
 
 
 static int next_id = 0;
@@ -169,14 +166,15 @@ typedef void (__fastcall* tCreateMonster)(void* this_ptr, void *unkn, void *ptr,
 tCreateMonster originalCreateMonster;
 void __fastcall CreateMonster(void* this_ptr, void* unkn, void* ptr, char flag)
 {
-	auto monster_id_ptr = (int*)((char*)this_ptr + 0x158);
-	LOG(INFO) << "Creating Monster : " <<
-		(*monster_id_ptr & 0xFFFF) << ":" << (*monster_id_ptr >> 16) << " flags " << (int)flag;
-	if (*monster_id_ptr >= 256)
-	{
-		next_id = *monster_id_ptr >> 16;
-		*monster_id_ptr &= 0xFFFF;
-	}
+	int monster_id = *(int*)((char*)this_ptr + 0x158);
+	unsigned int subspecies_override = *(int*)((char*)this_ptr + 0x10c);
+	if (subspecies_override == 0xCDCDCDCD) 
+		subspecies_override = 0;
+	else
+		next_id = subspecies_override;
+
+	LOG(INFO) << "Creating Monster : " << monster_id
+		 << ":" << subspecies_override << " flags " << (int)flag;
 	return originalCreateMonster(this_ptr, unkn, ptr, flag);
 }
 
@@ -184,25 +182,15 @@ typedef void* (__fastcall* tConstructMonster)(void* this_ptr, unsigned int monst
 tConstructMonster originalConstructMonster;
 void* __fastcall ConstructMonster(void* this_ptr, unsigned int monster_id, unsigned int variant)
 {
-	LOG(INFO) << "Setting Subspecies :" << next_id;
+
 	if (next_id) {
+		LOG(INFO) << "Setting Subspecies :" << next_id;
 		variant = next_id;
 		next_id = 0;
 	}
 	return originalConstructMonster(this_ptr, monster_id, variant);
 }
 
-typedef void(__fastcall* tSpawnLogic)(void* this_ptr, unsigned int id);
-tSpawnLogic originalSpawnLogic;
-void(__fastcall SpawnLogic)(void* this_ptr, unsigned int id)
-{
-	LOG(INFO) << "SpwanLogic  " << id;
-	auto base_id = *(int*)((char*)this_ptr + 0x158);
-	*(int*)((char*)this_ptr + 0x158) = base_id & 0xFFFF;
-	originalSpawnLogic(this_ptr, id);
-	*(int*)((char*)this_ptr + 0x158) = base_id;
-
-}
 
 void Initialize()
 {
@@ -214,8 +202,11 @@ void Initialize()
 
 	Quest::PopulateQuests();
 
-	std::cout << "Hooking\n";
+
+	LOG(WARN) << "Hooking";
 	MH_Initialize();
+
+	// Quest Hooks
 	MH_CreateHook((void*)0x14862cda0, &QuestUnlocked, (LPVOID *) &originalQuestUnlocked);	
 	MH_EnableHook((void*)0x14862cda0);
 
@@ -234,20 +225,16 @@ void Initialize()
 	MH_CreateHook((void*)0x14d10bfe0, &LoadFilePath, (LPVOID*)&originalLoadFile);
 	MH_EnableHook((void*)0x14d10bfe0);
 
-	MH_CreateHook((void*)0x149ed99b0, &GetMonsterString, (LPVOID*)&originalGetString);
-	MH_EnableHook((void*)0x149ed99b0);
 
-
-	MH_CreateHook((void*)0x14b210f90, &SpawnLogic, (LPVOID*)& originalSpawnLogic);
-	MH_EnableHook((void*)0x14b210f90);
-
+	// Subspecies Hooks
 	MH_CreateHook((void*)0x14b210830, &CreateMonster, (LPVOID*)& originalCreateMonster);
 	MH_EnableHook((void*)0x14b210830);
 
-	MH_CreateHook((void*)0x1418d2bb0, &ConstructMonster, (LPVOID*)& originalConstructMonster);
-	MH_EnableHook((void*)0x1418d2bb0);
+	MH_CreateHook((void*)0x14bd32e70, &ConstructMonster, (LPVOID*)& originalConstructMonster);
+	MH_EnableHook((void*)0x14bd32e70);
 
-	std::cout << "Hooking OK\n";
+	LOG(WARN) << "Hooking OK";
+
 
 }
 
@@ -255,9 +242,6 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 {
 	if (ul_reason_for_call == DLL_PROCESS_ATTACH)
 	{
-		AllocConsole();
-		FILE* fp;
-		freopen_s(&fp, "CONOUT$", "w", stdout);
 		DisableThreadLibraryCalls(hModule);
 		Initialize();
 	}
