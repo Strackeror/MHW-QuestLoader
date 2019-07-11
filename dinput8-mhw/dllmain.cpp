@@ -123,6 +123,16 @@ long long __fastcall GetQuestCategory(int questID, int unkn)
 	//LOG(INFO) << "QuestCategory " << questID << "end";
 }
 
+typedef bool(__fastcall* tCheckQuestProgress)(void* this_ptr, int index);
+tCheckQuestProgress originalCheckQuestProgress;
+bool CheckQuestProgress(void *this_ptr, int index)
+{
+	if (index > 90000) {
+		return true;
+	}
+	return originalCheckQuestProgress(this_ptr, index);
+}
+
 typedef void* (__fastcall* tLoadFile)(void* this_ptr, void* loaderPtr, char* path, int flag);
 tLoadFile originalLoadFile;
 void* __fastcall LoadFilePath(void* this_ptr, void* loaderPtr, char* path, int flag)
@@ -225,6 +235,9 @@ void Initialize()
 	
 	MH_CreateHook((void*)0x147735140, &CheckStarAndCategory, (LPVOID*)& originalCheckStarAndCategory);
 	MH_EnableHook((void*)0x147735140);
+
+	MH_CreateHook((void*)0x14862d150, &CheckQuestProgress, (LPVOID*)& originalCheckQuestProgress);
+	MH_EnableHook((void*)0x14862d150);
 
 	MH_CreateHook((void*)0x14d10bfe0, &LoadFilePath, (LPVOID*)&originalLoadFile);
 	MH_EnableHook((void*)0x14d10bfe0);
