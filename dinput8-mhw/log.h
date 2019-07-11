@@ -56,12 +56,8 @@ static char* getLogFilename() {
 }
 static char* log_filename = getLogFilename();
 
-#ifdef _DEBUG
-LogLevel min_log_level = INFO;
-#else
-LogLevel min_log_level = WARN;
-#endif // DEBUG
 
+LogLevel min_log_level = INFO;
 
 __declspec(dllexport) void _log(int l, const char* s) {
 

@@ -25,15 +25,36 @@ def move_subspecies(monster_path : str, old_variant_id : int, new_variant_id : i
             (
                 "em\\{0}\\{1:02d}\\mod\\{0}_{2:02d}".format(monster_path_name, new_variant_id, old_variant_id),
                 "em\\{0}\\{1:02d}\\mod\\{0}_{2:02d}".format(monster_path_name, new_variant_id, new_variant_id),
-            )
+            ),
+            (
+                "em\\{0}\\{1:02d}\\sound\\{0}_{2:02d}".format(monster_path_name, new_variant_id, old_variant_id),
+                "em\\{0}\\{1:02d}\\sound\\{0}_{2:02d}".format(monster_path_name, new_variant_id, new_variant_id),
+            ),
+            (
+                "em\\{0}\\{1:02d}\\epv\\{0}_{2:02d}".format(monster_path_name, new_variant_id, old_variant_id),
+                "em\\{0}\\{1:02d}\\epv\\{0}_{2:02d}".format(monster_path_name, new_variant_id, new_variant_id),
+            ),
+        ]
+
+        name_replacements = [
+            (
+            f"{old_variant_id:02d}\\mod\\{monster_path_name}_{old_variant_id:02d}",
+            f"{new_variant_id:02d}\\mod\\{monster_path_name}_{new_variant_id:02d}"
+            ),
+            (
+            f"{old_variant_id:02d}\\sound\\{monster_path_name}_{old_variant_id:02d}",
+            f"{new_variant_id:02d}\\sound\\{monster_path_name}_{new_variant_id:02d}"
+            ),
+            (
+            f"{old_variant_id:02d}\\epv\\{monster_path_name}_{old_variant_id:02d}",
+            f"{new_variant_id:02d}\\epv\\{monster_path_name}_{new_variant_id:02d}"
+            ),
         ]
         for (r, w) in replacements:
             aob = aob.replace(r.encode('ascii'), w.encode('ascii'))
         local_filename = os.path.relpath(filename, start=monster_path)
-        local_filename = local_filename.replace(
-            f"{old_variant_id:02d}\\mod\\{monster_path_name}_{old_variant_id:02d}",
-            f"{new_variant_id:02d}\\mod\\{monster_path_name}_{new_variant_id:02d}"
-                )
+        for (r, w) in name_replacements:
+            local_filename = local_filename.replace(r, w)
         local_filename = f"{new_variant_id:02d}" + local_filename[2:]
         final_filename = os.path.join(monster_path, local_filename)
         os.makedirs(os.path.dirname(final_filename), exist_ok=True)

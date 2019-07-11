@@ -202,6 +202,10 @@ void Initialize()
 
 	Quest::PopulateQuests();
 
+#ifndef _DEBUG
+	min_log_level = ERR;
+#endif // !_DEBUG
+
 
 	LOG(WARN) << "Hooking";
 	MH_Initialize();
