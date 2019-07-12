@@ -212,10 +212,6 @@ void Initialize()
 
 	Quest::PopulateQuests();
 
-#ifndef _DEBUG
-	min_log_level = ERR;
-#endif // !_DEBUG
-
 
 	LOG(WARN) << "Hooking";
 	MH_Initialize();
@@ -257,6 +253,9 @@ void Initialize()
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
 {
+#ifndef _DEBUG
+	min_log_level = ERR;
+#endif // !_DEBUG
 	if (ul_reason_for_call == DLL_PROCESS_ATTACH)
 	{
 		DisableThreadLibraryCalls(hModule);
