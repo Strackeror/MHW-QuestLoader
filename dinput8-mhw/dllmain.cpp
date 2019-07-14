@@ -15,12 +15,20 @@
 typedef HRESULT(WINAPI* tDirectInput8Create)(HINSTANCE inst_handle, DWORD version, const IID& r_iid, LPVOID* out_wrapper, LPUNKNOWN p_unk);
 tDirectInput8Create oDirectInput8Create = nullptr;
 
+#define HOOKFUNC(NAME, RET, ...) typedef RET (__fastcall*  t ## NAME)( __VA_ARGS__); \
+t##NAME original##NAME; \
+RET __fastcall NAME(__VA_ARGS__)
+
+#define AddHook(NAME, OFFSET) do {MH_CreateHook((void*)OFFSET, & NAME, (LPVOID *)& original##NAME); MH_EnableHook((void *)OFFSET);} while(0)
+
 class Quest {
 public:
 	static std::vector<Quest> Quests;
 	static int size;
 	static void PopulateQuests() 
 	{
+		if (!std::filesystem::exists("nativePC/quest"))
+			return;
 		for (auto& entry : std::filesystem::directory_iterator("nativePC/quest"))
 		{
 			std::string name = entry.path().filename().string();
@@ -202,6 +210,14 @@ void* __fastcall ConstructMonster(void* this_ptr, unsigned int monster_id, unsig
 }
 
 
+/// Test Hooks for logging shit
+
+HOOKFUNC(SetMonsterAnim, void*, void* this_ptr, unsigned int animationID, void* _1, void* _2)
+{
+	LOG(WARN) << "Monster PTR: " << this_ptr << " -  Action ID:" << std::hex << animationID << std::dec;
+	return originalSetMonsterAnim(this_ptr, animationID, _1, _2);
+}
+
 void Initialize()
 {
 	char syspath[MAX_PATH];
@@ -246,6 +262,11 @@ void Initialize()
 	MH_CreateHook((void*)0x14bd32e70, &ConstructMonster, (LPVOID*)& originalConstructMonster);
 	MH_EnableHook((void*)0x14bd32e70);
 
+
+	// Test hooks
+	//AddHook(SetMonsterAnim, 0x14bd3b600);
+
+
 	LOG(WARN) << "Hooking OK";
 
 
@@ -253,8 +274,11 @@ void Initialize()
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
 {
+
 #ifndef _DEBUG
 	min_log_level = ERR;
+#else
+	min_log_level = WARN;
 #endif // !_DEBUG
 	if (ul_reason_for_call == DLL_PROCESS_ATTACH)
 	{
