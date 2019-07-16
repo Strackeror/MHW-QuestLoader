@@ -5,6 +5,28 @@ from tkinter import *
 from tkinter import filedialog
 from tkinter.ttk import *
 
+from Crypto.Cipher import Blowfish
+
+def chunks(l, n):
+    """Yield successive n-sized chunks from l."""
+    for i in range(0, len(l), n):
+        yield l[i:i + n]
+
+def endianness_reversal(data):
+    return b''.join(map(lambda x: x[::-1],chunks(data, 4)))
+
+def CapcomBlowfish(file, key):
+    cipher = Blowfish.new(key.encode("utf-8"), Blowfish.MODE_ECB)
+    return endianness_reversal(cipher.decrypt(endianness_reversal(file)))
+
+def CapcomBlowfishEncrypt(file, key):
+    cipher = Blowfish.new(key.encode("utf-8"), Blowfish.MODE_ECB)
+    return endianness_reversal(cipher.encrypt(endianness_reversal(file)))
+
+file_keys = {
+    ".dtt":"hZ2H0gvUA4xIELjPoCIKefoCUFK9D77aPQvL9goKDpFbC2U2yhTRhWJG"
+}
+
 def move_subspecies(monster_path : str, old_variant_id : int, new_variant_id : int):
     monster_path_name = os.path.basename(monster_path)
     lst = glob.glob(os.path.join(monster_path, "{0:02d}\\**".format(old_variant_id)), recursive=True)
@@ -17,6 +39,8 @@ def move_subspecies(monster_path : str, old_variant_id : int, new_variant_id : i
         if not os.path.isfile(filename): 
             continue
         aob = open(filename, 'rb').read()
+        if (os.path.splitext(filename)[1] in file_keys):
+            aob = CapcomBlowfish(aob, file_keys[os.path.splitext(filename)[1]])
         replacements = [
             (
                 "em\\{0}\\{1:02d}".format(monster_path_name, old_variant_id),
@@ -57,6 +81,8 @@ def move_subspecies(monster_path : str, old_variant_id : int, new_variant_id : i
             local_filename = local_filename.replace(r, w)
         local_filename = f"{new_variant_id:02d}" + local_filename[2:]
         final_filename = os.path.join(monster_path, local_filename)
+        if (os.path.splitext(filename)[1] in file_keys):
+            aob = CapcomBlowfishEncrypt(aob, file_keys[os.path.splitext(filename)[1]])
         os.makedirs(os.path.dirname(final_filename), exist_ok=True)
         open(final_filename, 'wb').write(aob)
     progress.stop()
