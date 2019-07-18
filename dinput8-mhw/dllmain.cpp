@@ -60,37 +60,37 @@ public:
 std::vector<Quest> Quest::Quests;
 int Quest::size;
 
-typedef bool(__fastcall* tCheckIfQuestIsUnlocked)(void* this_ptr, unsigned int id);
-
-tCheckIfQuestIsUnlocked originalQuestUnlocked;
-bool __fastcall QuestUnlocked(void* this_ptr, unsigned int id)
+HOOKFUNC(CheckQuestUnlocked, bool, void* this_ptr, int id)
 {
-	//LOG(INFO) << "QuestUnlocked";
+	LOG(INFO) << "QuestUnlocked : " << id;
 	for (auto quest : Quest::Quests)
 	{
 		if (quest.file_id == id) {
-			LOG(INFO) << "QuestUnlocked : " << id;
 			return true;
 		}
 	}
-	return originalQuestUnlocked(this_ptr, id);
+	return originalCheckQuestUnlocked(this_ptr, id);
 }
 
 
-typedef int(__fastcall* tGetQuestCount)();
-tGetQuestCount originalQuestCount;
-
-int __fastcall GetQuestCount()
+HOOKFUNC(CheckQuestProgress, bool, void* this_ptr, int index)
 {
-	//LOG(INFO) << "QuestCount";
+	LOG(INFO) << "CheckQuestProgress " << index;
+	if (index > 90000) {
+		return true;
+	}
+	return originalCheckQuestProgress(this_ptr, index);
+}
+
+
+HOOKFUNC(QuestCount, int, void)
+{
+	LOG(INFO) << "QuestCount";
 	return originalQuestCount() + Quest::size;
 }
 
 
-typedef int(__fastcall* tGetQuestFromIndex)(void* this_ptr, int index);
-tGetQuestFromIndex originalQuestFromIndex;
-
-int __fastcall GetQuestFromIndex(void* this_ptr, int index)
+HOOKFUNC(QuestFromIndex, int, void* this_ptr, int index)
 {
 	if (index >= originalQuestCount())
 	{
@@ -100,61 +100,41 @@ int __fastcall GetQuestFromIndex(void* this_ptr, int index)
 	return originalQuestFromIndex(this_ptr, index);
 }
 
-typedef bool(__fastcall* tCheckStarAndCategory)(int questID, int category, int starCount);
-tCheckStarAndCategory originalCheckStarAndCategory;
-
-bool __fastcall CheckStarAndCategory(int questID, int category, int starCount)
+HOOKFUNC(CheckStarAndCategory, bool, int questID, int category, int starCount)
 {
 	LOG(INFO) << "CheckStarCategory " << questID;
 	auto ret = originalCheckStarAndCategory(questID, category, starCount);
 	for (auto quest : Quest::Quests)
 	{
 		if (questID != quest.file_id) continue;
-		//std::cout << "CheckStarAndCategory" << questID << std::endl;
 		if (category == 1 && starCount == quest.starcount) return true;
 		return false;
 	}
 	return ret;
 }
 
-typedef long long(__fastcall* tGetQuestCategory)(int questID, int unkn);
-tGetQuestCategory originalGetQuestCategory;
-
-long long __fastcall GetQuestCategory(int questID, int unkn)
+HOOKFUNC(GetQuestCategory, long long, int questID, int unkn)
 {
-	//LOG(INFO) << "QuestCategory " << questID;
+	LOG(INFO) << "GetQuestCategory";
 	auto ret = originalGetQuestCategory(questID, unkn);
 	if (questID > 90000) {
 		return 1;
 	}
 	return ret;
-	//LOG(INFO) << "QuestCategory " << questID << "end";
 }
 
-typedef bool(__fastcall* tCheckQuestProgress)(void* this_ptr, int index);
-tCheckQuestProgress originalCheckQuestProgress;
-bool CheckQuestProgress(void *this_ptr, int index)
+HOOKFUNC(LoadFilePath, void*, void* this_ptr, void* loaderPtr, char* path, int flag)
 {
-	if (index > 90000) {
-		return true;
-	}
-	return originalCheckQuestProgress(this_ptr, index);
-}
+	LOG(INFO) << "Loadfile:" << path;
+	void* ret = originalLoadFilePath(this_ptr, loaderPtr, path, flag);
 
-typedef void* (__fastcall* tLoadFile)(void* this_ptr, void* loaderPtr, char* path, int flag);
-tLoadFile originalLoadFile;
-void* __fastcall LoadFilePath(void* this_ptr, void* loaderPtr, char* path, int flag)
-{
-	//LOG(INFO) << "LoadFile :" << path;
-	void* ret = originalLoadFile(this_ptr, loaderPtr, path, flag);
-
-	if (loaderPtr == (void*)0x143bd8a38) 
+	if (loaderPtr == (void*)0x143be40d8)
 	{
 		for (auto quest : Quest::Quests) 
 		{
 			if (quest.questPath == path) {
 				*(int*)((char*)ret + 0xa8 + 0x70) = quest.file_id;
-				LOG(INFO) << "Overrode id to " << quest.file_id << " in path " << path;
+				LOG(WARN) << "Overrode id to " << quest.file_id << " in path " << path;
 			}
 		}
 	}
@@ -180,9 +160,7 @@ void __fastcall GetMonsterString(char *buf, size_t size, unsigned int id)
 
 
 static int next_id = 0;
-typedef void (__fastcall* tCreateMonster)(void* this_ptr, void *unkn, void *ptr, char flag);
-tCreateMonster originalCreateMonster;
-void __fastcall CreateMonster(void* this_ptr, void* unkn, void* ptr, char flag)
+HOOKFUNC(CreateMonster, void, void* this_ptr, void* unkn, void* ptr, char flag)
 {
 	int monster_id = *(int*)((char*)this_ptr + 0x158);
 	unsigned int subspecies_override = *(int*)((char*)this_ptr + 0x10c);
@@ -191,16 +169,13 @@ void __fastcall CreateMonster(void* this_ptr, void* unkn, void* ptr, char flag)
 	else
 		next_id = subspecies_override;
 
-	LOG(INFO) << "Creating Monster : " << monster_id
+	LOG(WARN) << "Creating Monster : " << monster_id
 		 << ":" << subspecies_override << " flags " << (int)flag;
 	return originalCreateMonster(this_ptr, unkn, ptr, flag);
 }
 
-typedef void* (__fastcall* tConstructMonster)(void* this_ptr, unsigned int monster_id, unsigned int variant);
-tConstructMonster originalConstructMonster;
-void* __fastcall ConstructMonster(void* this_ptr, unsigned int monster_id, unsigned int variant)
+HOOKFUNC(ConstructMonster, void*, void* this_ptr, unsigned int monster_id, unsigned int variant)
 {
-
 	if (next_id) {
 		LOG(INFO) << "Setting Subspecies :" << next_id;
 		variant = next_id;
@@ -218,6 +193,7 @@ HOOKFUNC(SetMonsterAnim, void*, void* this_ptr, unsigned int animationID, void* 
 	return originalSetMonsterAnim(this_ptr, animationID, _1, _2);
 }
 
+
 void Initialize()
 {
 	char syspath[MAX_PATH];
@@ -233,34 +209,19 @@ void Initialize()
 	MH_Initialize();
 
 	// Quest Hooks
-	MH_CreateHook((void*)0x14862cda0, &QuestUnlocked, (LPVOID *) &originalQuestUnlocked);	
-	MH_EnableHook((void*)0x14862cda0);
+	AddHook(QuestCount, 0x148954df0);
+	AddHook(QuestFromIndex, 0x148954e80);
+	AddHook(CheckQuestProgress, 0x148954d70);
+	AddHook(CheckQuestUnlocked, 0x1489548c0);
 
-	MH_CreateHook((void*)0x14862d1e0, &GetQuestCount, (LPVOID*)& originalQuestCount);
-	MH_EnableHook((void*)0x14862d1e0);
-
-	MH_CreateHook((void*)0x14862d220, &GetQuestFromIndex, (LPVOID*)& originalQuestFromIndex);
-	MH_EnableHook((void*)0x14862d220);
-	
-	MH_CreateHook((void*)0x14a8d87a0, &GetQuestCategory, (LPVOID*)& originalGetQuestCategory);
-	MH_EnableHook((void*)0x14a8d87a0);
-	
-	MH_CreateHook((void*)0x147735140, &CheckStarAndCategory, (LPVOID*)& originalCheckStarAndCategory);
-	MH_EnableHook((void*)0x147735140);
-
-	MH_CreateHook((void*)0x14862d150, &CheckQuestProgress, (LPVOID*)& originalCheckQuestProgress);
-	MH_EnableHook((void*)0x14862d150);
-
-	MH_CreateHook((void*)0x14d10bfe0, &LoadFilePath, (LPVOID*)&originalLoadFile);
-	MH_EnableHook((void*)0x14d10bfe0);
+	AddHook(CheckStarAndCategory, 0x1474d0ae0);
+	AddHook(GetQuestCategory, 0x14e0829d0);
+	AddHook(LoadFilePath, 0x1506cf8f0);
 
 
 	// Subspecies Hooks
-	MH_CreateHook((void*)0x14b210830, &CreateMonster, (LPVOID*)& originalCreateMonster);
-	MH_EnableHook((void*)0x14b210830);
-
-	MH_CreateHook((void*)0x14bd32e70, &ConstructMonster, (LPVOID*)& originalConstructMonster);
-	MH_EnableHook((void*)0x14bd32e70);
+	AddHook(CreateMonster, 0x14e61aff0);
+	AddHook(ConstructMonster, 0x14f11f9c0);
 
 
 	// Test hooks

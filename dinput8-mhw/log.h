@@ -31,12 +31,6 @@ public:
 		s_ << x;
 		return *this;
 	}
-	LOG& operator<<(const std::wstring& s) {
-		return *this << std::string(s.begin(), s.end());
-	}
-	LOG& operator<<(const wchar_t* s) {
-		return *this << std::wstring(s);
-	}
 };
 
 template<typename T>
