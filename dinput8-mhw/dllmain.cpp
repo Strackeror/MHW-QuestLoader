@@ -120,7 +120,10 @@ HOOKFUNC(LoadFilePath, void*, void* this_ptr, void* loaderPtr, char* path, int f
 	LOG(INFO) << "Loadfile:" << path;
 	void* ret = originalLoadFilePath(this_ptr, loaderPtr, path, flag);
 
-	if (loaderPtr == (void*)0x143be40d8)
+	// 40 53 41 56 48 81 ec d8 00 00 00 80 79 6c 00 48 89 cb 75 10 Load quest function
+	// Find function call for text (common\\text\\quest\\...)
+	// Function called with result and pointer needed
+	if (loaderPtr == (void*)0x143be59b8)
 	{
 		for (auto quest : Quest::Quests) 
 		{
