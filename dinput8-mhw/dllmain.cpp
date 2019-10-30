@@ -174,38 +174,61 @@ void Initialize()
 	HMODULE hMod = LoadLibrary(syspath);
 	oDirectInput8Create = (tDirectInput8Create)GetProcAddress(hMod, "DirectInput8Create");
 
+	unsigned char* checkAddr = (unsigned char*)0x14b6f50b0;
+	if (checkAddr[0] != 0x48 ||
+		checkAddr[1] != 0x89 ||
+		checkAddr[2] != 0x5c)
+	{
+		LOG(ERR) << "Safety check failed. Wrong monster hunter version.";
+		LOG(ERR) << "Launching the game without patching.";
+		return;
+	}
+	
+
 	Quest::PopulateQuests();
 
 
 	LOG(WARN) << "Hooking";
 	MH_Initialize();
 
-	// Quest Hooks
-	AddHook(QuestCount, 0x148b84970); // 83 39 ff 75 f5 c3
-	AddHook(QuestFromIndex, 0x148b85350); // 48 63 ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? 8b 04 81 c3 -  result 1 
 
+	// UI Function
+	// 48 89 5c 24 20 44 89 44 24 18 89 54 24 10 48 89 4c 24 08 55 56 57 41 54 41 55 41 56 41 57 48 83 ec 20 48 89 cd 31 f6
+	/*       
+		uVar5 = thunk_FUN_14b7cdb70(DAT_143bebdd8);
+		uVar4 = Quest.GetFromIndex(uVar5);
+		lVar6 = thunk_FUN_14b7cdb70(DAT_143bebdd8);
+		bVar1 = Quest.CheckUnlock(lVar6, uVar4);
+		if ((bVar1 == false) &&
+			(cVar2 = Quest.CheckStarAndCategory((ulonglong)uVar4, (ulonglong)param_2, (ulonglong)param_3)
+				, cVar2 == '\x01')) {
+	*/
+
+	// Quest Hooks
+	AddHook(QuestCount, 0x14bccc720); // 83 39 ff 75 f5 c3
+	AddHook(QuestFromIndex, 0x14bccc790); // In UI Function
+										  
 	// 48 89 5c 24 08 57 48 83 ec 20 89 d3 48 89 cf 89 d9 31 d2 - result 1 and 4
-	AddHook(CheckQuestProgress, 0x148b84810);
-	AddHook(CheckQuestUnlocked, 0x148b835f0);
+	AddHook(CheckQuestProgress, 0x14bccb650);
+	AddHook(CheckQuestUnlocked, 0x14bccc4c0);
 
 	// first func called in check progress and check unlocked
-	AddHook(GetQuestCategory, 0x14ad07590);
+	AddHook(GetQuestCategory, 0x14da75ac0);
 
-	// Find UI function with 48 89 5c 24 20 44 89 44 24 18 89 54 24 10 48 89 4c 24 08 55 56 57 41 54 41 55 41 56 41 57 48 83 ec 20 48 89 cd 31 f6
-	// Called after an unlock check in that function
-	AddHook(CheckStarAndCategory, 0x147bb2040);
+	// In UI function
+	AddHook(CheckStarAndCategory, 0x14ab34c60);
 	
 	// 40 53 56 41 54 41 57 48 81 ec a8 04 00 00 45 89 cc 4c 89 c3 49 89 d7 48 89 ce 4d 85 c0
-	AddHook(LoadFilePath, 0x14d3b45e0);
+	AddHook(LoadFilePath, 0x14fe5de50);
 
 	
 	// Subspecies Hooks
 
 	// 40 56 57 41 57 48 81 ec c0 00 00 00 8b 91 58 01 00 00 4d 89 c7 44 8b 81 68 01 00 00 48 89 ce
-	AddHook(SpawnMonster, 0x14b237200);
+	AddHook(SpawnMonster, 0x14dea5bb0);
 
 	// 48 89 5c 24 08 44 89 44 24 18 89 54 24 10 55 56 57 41 54 41 55 41 56 41 57 48 8d 6c 24 d9 48 81 ec c0 00 00 00
-	AddHook(ConstructMonster, 0x14be83510);
+	AddHook(ConstructMonster, 0x14e6d6530);
 
 	LOG(WARN) << "Hooking OK";
 
