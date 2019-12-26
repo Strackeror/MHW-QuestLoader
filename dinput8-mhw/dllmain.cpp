@@ -61,22 +61,39 @@ public:
 std::vector<Quest> Quest::Quests;
 int Quest::size;
 
-HOOKFUNC(CheckQuestUnlocked, bool, void* this_ptr, int id)
+HOOKFUNC(CheckQuestAvailable0, bool, void* this_ptr, int id)
 {
-	LOG(INFO) << "QuestUnlocked : " << id;
+	LOG(INFO) << "CheckQuestAvailable0 : " << id;
 	if (id >= Quest::QuestMinId)
 		return true;
-	return originalCheckQuestUnlocked(this_ptr, id);
+	return originalCheckQuestAvailable0(this_ptr, id);
+}
+
+HOOKFUNC(CheckQuestAvailable1, bool, void* this_ptr, int id)
+{
+	LOG(INFO) << "CheckQuestAvailable1 : " << id;
+	if (id >= Quest::QuestMinId)
+		return true;
+	return originalCheckQuestAvailable1(this_ptr, id);
 }
 
 
-HOOKFUNC(CheckQuestProgress, bool, void* this_ptr, int id)
+HOOKFUNC(CheckQuestAvailable2, bool, void* this_ptr, int id)
 {
-	LOG(INFO) << "CheckQuestProgress " << id;
+	LOG(INFO) << "CheckQuestAvailable2 : " << id;
 	if (id >= Quest::QuestMinId)
 		return true;
-	return originalCheckQuestProgress(this_ptr, id);
+	return originalCheckQuestAvailable2(this_ptr, id);
 }
+
+HOOKFUNC(CheckQuestUnlock, bool, void* this_ptr, int id)
+{
+	LOG(INFO) << "CheckQuestUnlock : " << id;
+	if (id >= Quest::QuestMinId)
+		return true;
+	return originalCheckQuestUnlock(this_ptr, id);
+}
+
 
 
 HOOKFUNC(QuestCount, int, void)
@@ -166,7 +183,7 @@ HOOKFUNC(SpawnMonster, void, void* this_ptr, void* unkn, void* ptr, char flag)
 HOOKFUNC(ConstructMonster, void*, void* this_ptr, unsigned int monster_id, unsigned int variant)
 {
 	if (next_id) {
-		LOG(INFO) << "Setting Subspecies :" << next_id;
+		LOG(WARN) << "Setting Subspecies :" << next_id;
 		variant = next_id;
 		next_id = 0;
 	}
@@ -181,7 +198,8 @@ void Initialize()
 	HMODULE hMod = LoadLibrary(syspath);
 	oDirectInput8Create = (tDirectInput8Create)GetProcAddress(hMod, "DirectInput8Create");
 
-	unsigned char* checkAddr = (unsigned char*)0x14b4fd240;
+	// UI Function offset checked here
+	unsigned char* checkAddr = (unsigned char*)0x14b5fa080;
 	if (checkAddr[0] != 0x48 ||
 		checkAddr[1] != 0x89 ||
 		checkAddr[2] != 0x5c)
@@ -214,30 +232,32 @@ void Initialize()
 	*/
 
 	// Quest Hooks
-	AddHook(QuestCount, 0x14bb6df70); // 83 39 ff 75 f5 c3 (- 0x26 bytes)
-	AddHook(QuestFromIndex, 0x14bb6e060); // In UI Function
+	AddHook(QuestCount, 0x14be0a750); // 83 39 ff 75 f5 c3 (- 0x16 bytes)
+	AddHook(QuestFromIndex, 0x14be0a7a0); // In UI Function
 										  
-	// 48 89 5c 24 08 57 48 83 ec 20 89 d3 48 89 cf 89 d9 31 d2 - result 1 and 4
-	AddHook(CheckQuestProgress, 0x14bb6d2d0);
-	AddHook(CheckQuestUnlocked, 0x14bb6d370);
+	// 48 89 5c 24 08 57 48 83 ec 20 89 d3 48 89 cf 89 d9 31 d2 - 4 results
+	AddHook(CheckQuestAvailable0, 0x14be0a660);
+	AddHook(CheckQuestAvailable1, 0x14be0a430);
+	AddHook(CheckQuestAvailable2, 0x14be0a2d0);
+	AddHook(CheckQuestUnlock, 0x14be0a250);
 
 	// first func called in check progress and check unlocked
-	AddHook(GetQuestCategory, 0x14dbcdda0);
+	AddHook(GetQuestCategory, 0x14e622860);
 
 	// In UI function
-	AddHook(CheckStarAndCategory, 0x14abfc690);
+	AddHook(CheckStarAndCategory, 0x14ae1d950);
 	
 	// 40 53 56 41 54 41 57 48 81 ec a8 04 00 00 45 89 cc 4c 89 c3 49 89 d7 48 89 ce 4d 85 c0
-	AddHook(LoadFilePath, 0x1505f9d30);
+	AddHook(LoadFilePath, 0x1509d1aa0);
 
 	
 	// Subspecies Hooks
 
 	// 40 56 57 41 57 48 81 ec c0 00 00 00 8b 91 58 01 00 00 4d 89 c7 44 8b 81 68 01 00 00 48 89 ce
-	AddHook(SpawnMonster, 0x14e539aa0);
+	AddHook(SpawnMonster, 0x14ea6e960);
 
 	// 48 89 5c 24 08 44 89 44 24 18 89 54 24 10 55 56 57 41 54 41 55 41 56 41 57 48 8d 6c 24 d9 48 81 ec c0 00 00 00
-	AddHook(ConstructMonster, 0x14f143380);
+	AddHook(ConstructMonster, 0x14f30d4a0);
 
 	LOG(WARN) << "Hooking OK";
 
