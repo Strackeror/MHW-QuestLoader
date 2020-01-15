@@ -1,6 +1,8 @@
 // dllmain.cpp : Defines the entry point for the DLL application.
 #include <SDKDDKVer.h>
 #include <windows.h>
+#include <winternl.h>
+#include <TlHelp32.h>
 
 #include <iostream>
 #include <fstream>
@@ -8,6 +10,7 @@
 #include <vector>
 #include <string>
 #include <sstream>
+#include <iterator>
 
 #include "MinHook.h"
 #include "log.h"
@@ -190,14 +193,8 @@ HOOKFUNC(ConstructMonster, void*, void* this_ptr, unsigned int monster_id, unsig
 	return originalConstructMonster(this_ptr, monster_id, variant);
 }
 
-void Initialize()
+void LoadHooks()
 {
-	char syspath[MAX_PATH];
-	GetSystemDirectory(syspath, MAX_PATH);
-	strcat_s(syspath, "\\dinput8.dll");
-	HMODULE hMod = LoadLibrary(syspath);
-	oDirectInput8Create = (tDirectInput8Create)GetProcAddress(hMod, "DirectInput8Create");
-
 	// UI Function offset checked here
 	unsigned char* checkAddr = (unsigned char*)0x14b5fa080;
 	if (checkAddr[0] != 0x48 ||
@@ -210,58 +207,149 @@ void Initialize()
 		LOG(ERR) << "Remove dinput8.dll to prevent this message from appearing at game start.";
 		return;
 	}
-	
-
-	Quest::PopulateQuests();
 
 
-	LOG(WARN) << "Hooking";
-	MH_Initialize();
+Quest::PopulateQuests();
 
 
-	// UI Function
-	// 48 89 5c 24 20 44 89 44 24 18 89 54 24 10 48 89 4c 24 08 55 56 57 41 54 41 55 41 56 41 57 48 83 ec 20 48 89 cd 31 f6
-	/*       
-		uVar5 = thunk_FUN_14b7cdb70(DAT_143bebdd8);
-		uVar4 = Quest.GetFromIndex(uVar5);
-		lVar6 = thunk_FUN_14b7cdb70(DAT_143bebdd8);
-		bVar1 = Quest.CheckUnlock(lVar6, uVar4);
-		if ((bVar1 == false) &&
-			(cVar2 = Quest.CheckStarAndCategory((ulonglong)uVar4, (ulonglong)param_2, (ulonglong)param_3)
-				, cVar2 == '\x01')) {
-	*/
+LOG(WARN) << "Hooking";
 
-	// Quest Hooks
-	AddHook(QuestCount, 0x14be0a750); // 83 39 ff 75 f5 c3 (- 0x16 bytes)
-	AddHook(QuestFromIndex, 0x14be0a7a0); // In UI Function
-										  
-	// 48 89 5c 24 08 57 48 83 ec 20 89 d3 48 89 cf 89 d9 31 d2 - 4 results
-	AddHook(CheckQuestAvailable0, 0x14be0a660);
-	AddHook(CheckQuestAvailable1, 0x14be0a430);
-	AddHook(CheckQuestAvailable2, 0x14be0a2d0);
-	AddHook(CheckQuestUnlock, 0x14be0a250);
+// UI Function
+// 48 89 5c 24 20 44 89 44 24 18 89 54 24 10 48 89 4c 24 08 55 56 57 41 54 41 55 41 56 41 57 48 83 ec 20 48 89 cd 31 f6
+/*
+	uVar5 = thunk_FUN_14b7cdb70(DAT_143bebdd8);
+	uVar4 = Quest.GetFromIndex(uVar5);
+	lVar6 = thunk_FUN_14b7cdb70(DAT_143bebdd8);
+	bVar1 = Quest.CheckUnlock(lVar6, uVar4);
+	if ((bVar1 == false) &&
+		(cVar2 = Quest.CheckStarAndCategory((ulonglong)uVar4, (ulonglong)param_2, (ulonglong)param_3)
+			, cVar2 == '\x01')) {
+*/
 
-	// first func called in check progress and check unlocked
-	AddHook(GetQuestCategory, 0x14e622860);
+// Quest Hooks
+AddHook(QuestCount, 0x14be0a750); // 83 39 ff 75 f5 c3 (- 0x16 bytes)
+AddHook(QuestFromIndex, 0x14be0a7a0); // In UI Function
 
-	// In UI function
-	AddHook(CheckStarAndCategory, 0x14ae1d950);
-	
-	// 40 53 56 41 54 41 57 48 81 ec a8 04 00 00 45 89 cc 4c 89 c3 49 89 d7 48 89 ce 4d 85 c0
-	AddHook(LoadFilePath, 0x1509d1aa0);
+// 48 89 5c 24 08 57 48 83 ec 20 89 d3 48 89 cf 89 d9 31 d2 - 4 results
+AddHook(CheckQuestAvailable0, 0x14be0a660);
+AddHook(CheckQuestAvailable1, 0x14be0a430);
+AddHook(CheckQuestAvailable2, 0x14be0a2d0);
+AddHook(CheckQuestUnlock, 0x14be0a250);
 
-	
-	// Subspecies Hooks
+// first func called in check progress and check unlocked
+AddHook(GetQuestCategory, 0x14e622860);
 
-	// 40 56 57 41 57 48 81 ec c0 00 00 00 8b 91 58 01 00 00 4d 89 c7 44 8b 81 68 01 00 00 48 89 ce
-	AddHook(SpawnMonster, 0x14ea6e960);
+// In UI function
+AddHook(CheckStarAndCategory, 0x14ae1d950);
 
-	// 48 89 5c 24 08 44 89 44 24 18 89 54 24 10 55 56 57 41 54 41 55 41 56 41 57 48 8d 6c 24 d9 48 81 ec c0 00 00 00
-	AddHook(ConstructMonster, 0x14f30d4a0);
-
-	LOG(WARN) << "Hooking OK";
+// 40 53 56 41 54 41 57 48 81 ec a8 04 00 00 45 89 cc 4c 89 c3 49 89 d7 48 89 ce 4d 85 c0
+AddHook(LoadFilePath, 0x1509d1aa0);
 
 
+// Subspecies Hooks
+
+// 40 56 57 41 57 48 81 ec c0 00 00 00 8b 91 58 01 00 00 4d 89 c7 44 8b 81 68 01 00 00 48 89 ce
+AddHook(SpawnMonster, 0x14ea6e960);
+
+// 48 89 5c 24 08 44 89 44 24 18 89 54 24 10 55 56 57 41 54 41 55 41 56 41 57 48 8d 6c 24 d9 48 81 ec c0 00 00 00
+AddHook(ConstructMonster, 0x14f30d4a0);
+
+LOG(WARN) << "Hooking OK";
+
+}
+
+HOOKFUNC(PathTest, void*, char* path, void *ext)
+{
+	if (path != nullptr)
+	{
+		auto path_as_str = std::string(path);
+		LOG(WARN) << std::string(path);
+	}
+	return originalPathTest(path, ext);
+}
+
+void CRCBypassDump()
+{
+	std::ifstream input("EXEDiffOnly_CRC_Bypassed", std::ios::binary);
+	std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(input), {});
+
+	LOG(WARN) << "Dumping";
+	memcpy((void*)0x143310fe0, &buffer[0], buffer.size());
+}
+
+void Initialize()
+{
+	char syspath[MAX_PATH];
+	GetSystemDirectory(syspath, MAX_PATH);
+	strcat_s(syspath, "\\dinput8.dll");
+	HMODULE hMod = LoadLibrary(syspath);
+	oDirectInput8Create = (tDirectInput8Create)GetProcAddress(hMod, "DirectInput8Create");
+
+	CRCBypassDump();
+	//LOG(WARN) << "TEST";
+
+	//MH_Initialize();
+	//AddHook(PathTest, 0x1602756a0);
+	//*((char*)0x15e9c508f) = 0x85;
+}
+
+typedef LONG    NTSTATUS;
+typedef NTSTATUS(WINAPI* pNtQIT)(HANDLE, LONG, PVOID, ULONG, PULONG);
+#define STATUS_SUCCESS    ((NTSTATUS)0x00000000L)
+#define ThreadQuerySetWin32StartAddress 9
+
+DWORD64 GetThreadStartAddress(HANDLE hThread)
+{
+	NTSTATUS ntStatus;
+	HANDLE hDupHandle;
+	DWORD64 dwStartAddress;
+
+	pNtQIT NtQueryInformationThread = (pNtQIT)GetProcAddress(GetModuleHandle("ntdll.dll"), "NtQueryInformationThread");
+	if (NtQueryInformationThread == NULL) return 0;
+
+	HANDLE hCurrentProcess = GetCurrentProcess();
+	if (!DuplicateHandle(hCurrentProcess, hThread, hCurrentProcess, &hDupHandle, THREAD_QUERY_INFORMATION, FALSE, 0)) {
+		SetLastError(ERROR_ACCESS_DENIED);
+		return 0;
+	}
+
+	ntStatus = NtQueryInformationThread(hDupHandle, ThreadQuerySetWin32StartAddress, &dwStartAddress, sizeof(DWORD64), NULL);
+	CloseHandle(hDupHandle);
+	if (ntStatus != STATUS_SUCCESS) return 0;
+
+	return dwStartAddress;
+}
+
+void TestKillThreads()
+{
+	auto snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+	auto id = GetCurrentProcessId();
+	THREADENTRY32 entry;
+	entry.dwSize = sizeof(entry);
+
+	if (!Thread32First(snapshot, &entry))
+	{
+		LOG(ERR) << "Failed iteration of thread";
+	}
+
+	do {
+		if (entry.th32OwnerProcessID == id)
+		{
+			auto thread = OpenThread(THREAD_ALL_ACCESS, false, entry.th32ThreadID);
+			if (thread != NULL)
+			{
+				DWORD64 addr = GetThreadStartAddress(thread);
+				DWORD64 addr_range[] = { 0x1418c56c0 , 0x141906050 };
+				if (addr >= addr_range[0] && addr <= addr_range[1] &&
+					((addr - addr_range[0]) % 0x2CF0) == 0)
+				{
+					LOG(WARN) << "Terminated thread : " << addr;
+					TerminateThread(thread, 0);
+				}
+				CloseHandle(thread);
+			}
+		}
+	} while (Thread32Next(snapshot, &entry));
 }
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
@@ -282,5 +370,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 
 HRESULT WINAPI DirectInput8Create(HINSTANCE inst_handle, DWORD version, const IID& r_iid, LPVOID* out_wrapper, LPUNKNOWN p_unk)
 {
+	LOG(WARN) << "Killing threads";
+	TestKillThreads();
 	return oDirectInput8Create(inst_handle, version, r_iid, out_wrapper, p_unk);
 }
