@@ -278,6 +278,8 @@ HOOKFUNC(PathTest, void*, void* _0, const char *path, void* _2)
 
 void FindAllPaths()
 {
+	if (!std::filesystem::is_directory("nativePC"))
+		return;
 	for (const auto& dirEntry : std::filesystem::recursive_directory_iterator("nativePC"))
 	{
 		if (dirEntry.is_regular_file())
@@ -286,7 +288,6 @@ void FindAllPaths()
 			path.erase(0, 9);
 
 			paths["native:\\" + path] = "nativePC:\\" + path;
-			LOG(WARN) << path;
 		}
 	}
 }
@@ -311,11 +312,11 @@ void Initialize()
 
 	LOG(WARN) << "Initialize";
 
-	//MH_Initialize();
-	//FindAllPaths();
-	//if (!paths.empty()) AddHook(PathTest, 0x1603f5740);
+	CRCBypassDump();
+	MH_Initialize();
+	FindAllPaths();
+	if (!paths.empty()) AddHook(PathTest, 0x1603f5740);
 
-	//CRCBypassDump();
 }
 
 typedef LONG    NTSTATUS;
@@ -395,7 +396,6 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 
 HRESULT WINAPI DirectInput8Create(HINSTANCE inst_handle, DWORD version, const IID& r_iid, LPVOID* out_wrapper, LPUNKNOWN p_unk)
 {
-	//LOG(WARN) << "Killing threads";
-	//TestKillThreads();
+	TestKillThreads();
 	return oDirectInput8Create(inst_handle, version, r_iid, out_wrapper, p_unk);
 }
