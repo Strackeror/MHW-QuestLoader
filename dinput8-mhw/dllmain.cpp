@@ -11,6 +11,7 @@
 #include <string>
 #include <sstream>
 #include <iterator>
+#include <map>
 
 #include "MinHook.h"
 #include "log.h"
@@ -258,19 +259,42 @@ LOG(WARN) << "Hooking OK";
 
 }
 
-HOOKFUNC(PathTest, void*, char* path, void *ext)
+std::map<std::string, std::string> paths;
+
+HOOKFUNC(PathTest, void*, void* _0, const char *path, void* _2)
 {
-	if (path != nullptr)
+	std::string p(path);
+	void* x;
+	if (paths.find(p) != paths.end()) 
 	{
-		auto path_as_str = std::string(path);
-		LOG(WARN) << std::string(path);
+		x = originalPathTest(_0, paths[p].c_str(), _2);
+		LOG(WARN) << "Redirecting file load to nativePC : " << paths[p];
 	}
-	return originalPathTest(path, ext);
+	else
+		x = originalPathTest(_0, path, _2);
+	return x;
+}
+
+
+void FindAllPaths()
+{
+	for (const auto& dirEntry : std::filesystem::recursive_directory_iterator("nativePC"))
+	{
+		if (dirEntry.is_regular_file())
+		{
+			std::string path = dirEntry.path().string();
+			path.erase(0, 9);
+
+			paths["native:\\" + path] = "nativePC:\\" + path;
+			LOG(WARN) << path;
+		}
+	}
 }
 
 void CRCBypassDump()
 {
 	std::ifstream input("EXEDiffOnly_CRC_Bypassed", std::ios::binary);
+	if (input.fail()) return;
 	std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(input), {});
 
 	LOG(WARN) << "Dumping";
@@ -285,12 +309,13 @@ void Initialize()
 	HMODULE hMod = LoadLibrary(syspath);
 	oDirectInput8Create = (tDirectInput8Create)GetProcAddress(hMod, "DirectInput8Create");
 
-	CRCBypassDump();
-	//LOG(WARN) << "TEST";
+	LOG(WARN) << "Initialize";
 
 	//MH_Initialize();
-	//AddHook(PathTest, 0x1602756a0);
-	//*((char*)0x15e9c508f) = 0x85;
+	//FindAllPaths();
+	//if (!paths.empty()) AddHook(PathTest, 0x1603f5740);
+
+	//CRCBypassDump();
 }
 
 typedef LONG    NTSTATUS;
@@ -343,7 +368,7 @@ void TestKillThreads()
 				if (addr >= addr_range[0] && addr <= addr_range[1] &&
 					((addr - addr_range[0]) % 0x2CF0) == 0)
 				{
-					LOG(WARN) << "Terminated thread : " << addr;
+					LOG(WARN) << "Terminated thread : " << std::hex << addr;
 					TerminateThread(thread, 0);
 				}
 				CloseHandle(thread);
@@ -370,7 +395,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 
 HRESULT WINAPI DirectInput8Create(HINSTANCE inst_handle, DWORD version, const IID& r_iid, LPVOID* out_wrapper, LPUNKNOWN p_unk)
 {
-	LOG(WARN) << "Killing threads";
-	TestKillThreads();
+	//LOG(WARN) << "Killing threads";
+	//TestKillThreads();
 	return oDirectInput8Create(inst_handle, version, r_iid, out_wrapper, p_unk);
 }
