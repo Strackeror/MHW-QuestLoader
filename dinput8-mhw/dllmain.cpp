@@ -45,5 +45,6 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 HRESULT WINAPI DirectInput8Create(HINSTANCE inst_handle, DWORD version, const IID& r_iid, LPVOID* out_wrapper, LPUNKNOWN p_unk)
 {
 	KillCRCThreads();
+	StartTerminateLoop();
 	return oDirectInput8Create(inst_handle, version, r_iid, out_wrapper, p_unk);
 }

@@ -10,6 +10,7 @@ RET __fastcall NAME(__VA_ARGS__)
 #define AddHook(NAME, OFFSET) do {MH_CreateHook((void*)OFFSET, & NAME, (LPVOID *)& original##NAME); MH_EnableHook((void *)OFFSET);} while(0)
 
 void KillCRCThreads();
+void StartTerminateLoop();
 void InjectCRCBypass();
 
 void InjectForceNativePC();

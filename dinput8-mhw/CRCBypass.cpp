@@ -4,6 +4,7 @@
 #include <tlhelp32.h>
 
 #include <fstream>
+#include <thread>
 
 #include "log.h"
 #include "dll.h"
@@ -75,4 +76,54 @@ void CRCBypassDump()
 	memcpy((void*)0x143310fe0, &buffer[0], buffer.size());
 }
 
+/*
+	Game does not close properly when you kill the CRC threads, so we add a thread that checks the window is still open every so often
+*/
+
+HWND window;
+
+BOOL CALLBACK enum_windows_callback(HWND handle, LPARAM l)
+{
+	DWORD pid;
+	char title[256];
+	GetWindowThreadProcessId(handle, &pid);
+	GetWindowText(handle, title, 256);
+
+	std::string stitle(title);
+	if (pid == GetCurrentProcessId() && stitle.find("MONSTER HUNTER: WORLD") != stitle.npos)
+	{
+		LOG(INFO) << "Found window.";
+		window = handle;
+		return false;
+	}
+	return true;
+}
+
+void ForceTerminateLoop()
+{
+	EnumWindows(enum_windows_callback, NULL);
+	while (true)
+	{
+		std::this_thread::sleep_for(std::chrono::seconds(5));
+		if (!IsWindow(window))
+		{
+			LOG(ERR) << "No valid game window detected: terminating";
+			std::this_thread::sleep_for(std::chrono::seconds(3));
+			TerminateProcess(GetCurrentProcess(), 0);
+			return;
+		}
+	}
+}
+
+void StartTerminateLoop()
+{
+	static bool launched = false;
+
+	if (!launched)
+	{
+		launched = true;
+		std::thread thread(ForceTerminateLoop);
+		thread.detach();
+	}
+}
 
