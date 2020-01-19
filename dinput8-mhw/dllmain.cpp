@@ -19,7 +19,8 @@ void Initialize()
 	HMODULE hMod = LoadLibrary(syspath);
 	oDirectInput8Create = (tDirectInput8Create)GetProcAddress(hMod, "DirectInput8Create");
 
-	LOG(WARN) << "Initialize";
+	LOG(WARN) << "Quest Loader";
+	LOG(ERR) << "Game process will not terminate properly until this window is closed";
 
 	MH_Initialize();
 	InjectForceNativePC();
@@ -29,9 +30,9 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 {
 
 #ifndef _DEBUG
-	min_log_level = ERR;
+	min_log_level = INFO;
 #else
-	min_log_level = WARN;
+	min_log_level = DEBUG;
 #endif // !_DEBUG
 	if (ul_reason_for_call == DLL_PROCESS_ATTACH)
 	{

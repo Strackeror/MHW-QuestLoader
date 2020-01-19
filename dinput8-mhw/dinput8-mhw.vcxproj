@@ -155,7 +155,7 @@
       <PreprocessorDefinitions>NDEBUG;DINPUT8MHW_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)external\minhook\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)external\minhook\include;$(SolutionDir)external\json</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -177,6 +177,10 @@
     <ClCompile Include="SubspeciesLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <CopyFileToFolders Include="dinput-config.json">
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
+      <FileType>Document</FileType>
+    </CopyFileToFolders>
     <None Include="dinput8.def" />
   </ItemGroup>
   <ItemGroup>

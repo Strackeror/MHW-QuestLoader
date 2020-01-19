@@ -58,7 +58,7 @@ void KillCRCThreads()
 				if (addr >= addr_range[0] && addr <= addr_range[1] &&
 					((addr - addr_range[0]) % 0x2CF0) == 0)
 				{
-					LOG(WARN) << "Terminated thread : " << std::hex << addr;
+					LOG(INFO) << "Terminated thread : " << std::hex << addr;
 					TerminateThread(thread, 0);
 				}
 				CloseHandle(thread);
