@@ -169,13 +169,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CRCBypass.cpp" />
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="ForceNativePC.cpp" />
+    <ClCompile Include="log.cpp" />
+    <ClCompile Include="QuestLoader.cpp" />
+    <ClCompile Include="SubspeciesLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="dinput8.def" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="log.h" />
+    <ClInclude Include="dll.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
