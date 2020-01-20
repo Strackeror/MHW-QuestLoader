@@ -27,6 +27,7 @@ HOOKFUNC(FilePathCheck, void*, void* _0, const char* path, void* _1)
 
 void FetchNativePCFiles()
 {
+	if (!std::filesystem::is_directory("nativePC")) return;
 	for (auto entry : std::filesystem::recursive_directory_iterator("nativePC"))
 	{
 		if (!entry.is_regular_file()) continue;
@@ -36,23 +37,9 @@ void FetchNativePCFiles()
 	}
 }
 
-void CheckConfig()
-{
-	std::ifstream config("dinput-config.json");
-	if (config.fail()) return;
-
-	LOG(INFO) << "Found config file";
-	nlohmann::json j;
-	config >> j;
-
-	auto it = j.find("outputEveryPath");
-	if (it != j.end() && it.value().is_boolean())
-		outputEveryPath = it.value().get<bool>();
-}
-
 void InjectForceNativePC()
 {
-	CheckConfig();
+	outputEveryPath = ConfigFile.value<bool>("outputEveryPath", false);
 	FetchNativePCFiles();
 	if (!nativePCList.empty() || outputEveryPath)
 	{

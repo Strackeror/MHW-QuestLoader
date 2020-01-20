@@ -1,3 +1,5 @@
 {
-    "outputEveryPath":false
+  "logfile": false,
+  "logcmd" : false,
+  "outputEveryPath": false
 }

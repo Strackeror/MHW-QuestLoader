@@ -36,6 +36,9 @@
     <ClCompile Include="ForceNativePC.cpp">
       <Filter>Source Files\mods</Filter>
     </ClCompile>
+    <ClCompile Include="config.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="dinput8.def">

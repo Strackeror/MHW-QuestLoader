@@ -117,13 +117,8 @@ void ForceTerminateLoop()
 
 void StartTerminateLoop()
 {
-	static bool launched = false;
-
-	if (!launched)
-	{
-		launched = true;
-		std::thread thread(ForceTerminateLoop);
-		thread.detach();
-	}
+	if (ConfigFile.value<bool>("disableForceTerminate", false)) return;
+	std::thread thread(ForceTerminateLoop);
+	thread.detach();
 }
 

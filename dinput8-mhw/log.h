@@ -23,7 +23,9 @@ protected:
 	LOG& operator=(const LOG& o) = delete;
 public:
 	LOG(LogLevel l) :l_(l) {}
+
 	~LOG();
+
 	template<class T>
 	LOG& operator<<(const T& x) {
 		s_ << x;
