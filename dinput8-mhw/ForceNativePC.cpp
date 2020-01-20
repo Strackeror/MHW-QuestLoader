@@ -19,6 +19,7 @@ HOOKFUNC(FilePathCheck, void*, void* _0, const char* path, void* _1)
 	std::string spath(path);
 	if (outputEveryPath)
 		LOG(INFO) << "File loaded : " << spath;
+	std::transform(spath.begin(), spath.end(), spath.begin(), std::tolower);
 	if (nativePCList.find(spath) == nativePCList.end())
 		return originalFilePathCheck(_0, path, _1);
 	LOG(INFO) << "File redirected to nativePC : " << spath;
@@ -33,6 +34,7 @@ void FetchNativePCFiles()
 		if (!entry.is_regular_file()) continue;
 		std::string path = entry.path().string();
 		path.erase(0, 9);
+		std::transform(path.begin(), path.end(), path.begin(), std::tolower);
 		nativePCList["native:\\" + path] = "nativePC:\\" + path;
 	}
 }
