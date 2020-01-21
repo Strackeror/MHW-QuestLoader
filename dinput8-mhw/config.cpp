@@ -8,6 +8,7 @@ nlohmann::json ConfigFile;
 
 void LoadConfig()
 {
+	ConfigFile = nlohmann::json::object();
 	std::ifstream config("dinput-config.json");
 	if (config.fail()) return;
 
