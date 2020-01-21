@@ -22,6 +22,7 @@ void InitCodeInjections()
 	StartTerminateLoop();
 	MH_Initialize();
 	InjectForceNativePC();
+	InjectSubspeciesLoader();
 }
 
 
