@@ -1,8 +1,8 @@
 # MHW-QuestLoader
 
 Current working features :
-Full nativePC restoration
+- Full nativePC restoration
 
 Planned :
-Subspecies Loader
-Quest Loader
+- Subspecies Loader
+- Quest Loader
