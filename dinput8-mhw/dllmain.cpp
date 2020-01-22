@@ -23,6 +23,7 @@ void InitCodeInjections()
 	MH_Initialize();
 	InjectForceNativePC();
 	InjectSubspeciesLoader();
+	InjectQuestLoader();
 }
 
 

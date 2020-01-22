@@ -8,6 +8,7 @@ public:
 	static int size;
 	static void PopulateQuests() 
 	{
+		/*
 		if (!std::filesystem::exists("nativePC/quest"))
 			return;
 		for (auto& entry : std::filesystem::directory_iterator("nativePC/quest"))
@@ -22,6 +23,8 @@ public:
 			LOG(WARN) << "found quest: " << id;
 			Quests.push_back(Quest(id));
 		}
+		*/
+		Quests.push_back(Quest(99999));
 		size = Quest::Quests.size();
 	}
 
@@ -43,34 +46,42 @@ int Quest::size;
 
 HOOKFUNC(CheckQuestAvailable0, bool, void* this_ptr, int id)
 {
-	LOG(INFO) << "CheckQuestAvailable0 : " << id;
 	if (id >= Quest::QuestMinId)
+	{
+		LOG(INFO) << "CheckQuestAvailable0 : " << id;
 		return true;
+	}
 	return originalCheckQuestAvailable0(this_ptr, id);
 }
 
 HOOKFUNC(CheckQuestAvailable1, bool, void* this_ptr, int id)
 {
-	LOG(INFO) << "CheckQuestAvailable1 : " << id;
 	if (id >= Quest::QuestMinId)
+	{
+		LOG(INFO) << "CheckQuestAvailable1 : " << id;
 		return true;
+	}
 	return originalCheckQuestAvailable1(this_ptr, id);
 }
 
 
 HOOKFUNC(CheckQuestAvailable2, bool, void* this_ptr, int id)
 {
-	LOG(INFO) << "CheckQuestAvailable2 : " << id;
 	if (id >= Quest::QuestMinId)
+	{
+		LOG(INFO) << "CheckQuestAvailable2 : " << id;
 		return true;
+	}
 	return originalCheckQuestAvailable2(this_ptr, id);
 }
 
 HOOKFUNC(CheckQuestUnlock, bool, void* this_ptr, int id)
 {
-	LOG(INFO) << "CheckQuestUnlock : " << id;
 	if (id >= Quest::QuestMinId)
+	{
+		LOG(INFO) << "CheckQuestUnlock : " << id;
 		return true;
+	}
 	return originalCheckQuestUnlock(this_ptr, id);
 }
 
@@ -101,9 +112,9 @@ HOOKFUNC(CheckStarAndCategory, bool, int questID, int category, int starCount)
 
 HOOKFUNC(GetQuestCategory, long long, int questID, int unkn)
 {
-	LOG(INFO) << "GetQuestCategory";
 	auto ret = originalGetQuestCategory(questID, unkn);
 	if (questID >= Quest::QuestMinId) {
+		LOG(INFO) << "GetQuestCategory " << questID;
 		return 1;
 	}
 	return ret;
@@ -139,6 +150,7 @@ HOOKFUNC(LoadFilePath, void*, void* this_ptr, void* loaderPtr, char* path, int f
 void InjectQuestLoader()
 {
 	// UI Function offset checked here
+	/*
 	unsigned char* checkAddr = (unsigned char*)0x14b5fa080;
 	if (checkAddr[0] != 0x48 ||
 		checkAddr[1] != 0x89 ||
@@ -150,6 +162,7 @@ void InjectQuestLoader()
 		LOG(ERR) << "Remove dinput8.dll to prevent this message from appearing at game start.";
 		return;
 	}
+	*/
 
 
 	Quest::PopulateQuests();
@@ -170,23 +183,23 @@ void InjectQuestLoader()
 	*/
 
 	// Quest Hooks
-	AddHook(QuestCount, 0x14be0a750); // 83 39 ff 75 f5 c3 (- 0x16 bytes)
-	AddHook(QuestFromIndex, 0x14be0a7a0); // In UI Function
+	AddHook(QuestCount, 0x153ecdcc0); // 83 39 ff 75 f5 c3 (- 0x16 bytes)
+	AddHook(QuestFromIndex, 0x153ecdae0); // In UI Function
 
 	// 48 89 5c 24 08 57 48 83 ec 20 89 d3 48 89 cf 89 d9 31 d2 - 4 results
-	AddHook(CheckQuestAvailable0, 0x14be0a660);
-	AddHook(CheckQuestAvailable1, 0x14be0a430);
-	AddHook(CheckQuestAvailable2, 0x14be0a2d0);
-	AddHook(CheckQuestUnlock, 0x14be0a250);
+	AddHook(CheckQuestAvailable0, 0x153eb3a50);
+	AddHook(CheckQuestAvailable1, 0x153eb3610);
+	AddHook(CheckQuestAvailable2, 0x153eb38e0);
+	AddHook(CheckQuestUnlock, 0x153ecd7c0);
 
 	// first func called in check progress and check unlocked
-	AddHook(GetQuestCategory, 0x14e622860);
+	AddHook(GetQuestCategory, 0x156835910);
 
 	// In UI function
-	AddHook(CheckStarAndCategory, 0x14ae1d950);
+	//AddHook(CheckStarAndCategory, 0x14ae1d950);
 
 	// 40 53 56 41 54 41 57 48 81 ec a8 04 00 00 45 89 cc 4c 89 c3 49 89 d7 48 89 ce 4d 85 c0
-	AddHook(LoadFilePath, 0x1509d1aa0);
+	//AddHook(LoadFilePath, 0x1509d1aa0);
 
 
 	LOG(WARN) << "Hooking OK";
