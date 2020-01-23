@@ -3,13 +3,17 @@
 
 #include <fstream>
 
+bool configLoaded = false;
+
 LogLevel min_log_level = INFO;
+bool logcmd = false;
+bool logfile = false;
 
 void logToFile(const char* stamp, const char* msg)
 {
 	static std::ofstream o;
 
-	if (!ConfigFile.value<bool>("logfile", false)) return;
+	if (!logfile) return;
 
 	if (!o.is_open())
 		o = std::ofstream("dinput-loader.log");
@@ -21,7 +25,7 @@ void logToFile(const char* stamp, const char* msg)
 void logToConsole(int l, const char* stamp, const char* msg)
 {
 	static HANDLE console = 0;
-	if (!ConfigFile.value<bool>("logcmd", false)) return;
+	if (!logcmd) return;
 
 	if (!console )
 	{
@@ -47,6 +51,13 @@ void logToConsole(int l, const char* stamp, const char* msg)
 
 void _log(int l, const char* s) 
 {
+	if (!configLoaded)
+	{
+		configLoaded = true;
+		logcmd = ConfigFile.value<bool>("logcmd", false);
+		logfile = ConfigFile.value<bool>("logfile", false);
+	}
+
 	if (l >= min_log_level) {
 		time_t mytime = time(NULL);
 		tm mytm;
