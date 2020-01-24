@@ -22,18 +22,17 @@ HOOKFUNC(SpawnMonster, void, void* this_ptr, void* unkn, void* ptr, char flag)
 	else
 		next_id = subspecies_override;
 
-	LOG(INFO) << "Creating Monster : " << monster_id << "-" << subspecies_override;
+	LOG(DEBUG) << "Creating Monster : " << monster_id << "-" << subspecies_override;
 	return originalSpawnMonster(this_ptr, unkn, ptr, flag);
 }
 
 HOOKFUNC(ConstructMonster, void*, void* this_ptr, unsigned int monster_id, unsigned int variant)
 {
 	if (next_id) {
-		LOG(WARN) << "Setting Subspecies :" << next_id;
+		LOG(INFO) << "Setting Subspecies : " << monster_id << ":" << next_id;
 		variant = next_id;
 		next_id = 0;
 	}
-	LOG(INFO) << "Monster constructed : " << monster_id << "-" << variant;
 	return originalConstructMonster(this_ptr, monster_id, variant);
 }
 
