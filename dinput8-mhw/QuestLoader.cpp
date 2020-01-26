@@ -21,50 +21,56 @@
 				uStack112 = 0x1537515c1;
 				iVar8 = Quest:CheckUnlock((ulonglong)uVar1);
 */
-#define UIFilterCheckOffset			0x1537513e0
-#define QuestCheckUnlockOffset		0x156837d70
-#define	QuestStarCategoryOffset		0x152ed7330
-#define QuestCheckCompleteOffset	0x153eb38e0
+#define UIFilterCheckAddress			0x1537513e0
+#define QuestCheckCompleteAddress		0x153eb38e0
+#define	QuestStarCategoryAddress		0x152ed7330
+#define QuestCheckUnlockAddress			0x156837d70
 
 // First function call in QuestCheckComplete
-#define QuestCategoryOffset			0x156835910		
+#define QuestCategoryAddress			0x156835910		
 
 
 // ff c0 48 8d 49 04 83 39 ff 75 f5 c3
 // SUBSTRACT 0x10
-#define QuestCountOffset			0x153ecdcc0
+#define QuestCountAddress				0x153ecdcc0
 
 // 48 63 c2 ?????????????? 8b 04 81 c3
-#define QuestNoFromIndexOffset		0x153ecdae0	
+#define QuestNoFromIndexAddress			0x153ecdae0	
+
+// 48 83 ec 30 80 b9 7b 80 20 00 00
+// SUBSTRACT 0x1a
+#define LoadObjFromFileAddress			0x160adf1e0
 
 
+
+// Search for string 'rQuestData'
+// Follow pointer 0x58 bytes before that string
+// Address loaded in RCX at 0xA bytes in function pointed
+// (First parameter of first function call)
+#define QuestDataObjDefAddress			0x144d2c908
+
+// Search for string 'rQuestNoList'
+// Follow pointer 0x18 bytes before that string
+// Address loaded in RCX at 0xA bytes in function pointed
+#define QuestNoListObjDefAddress		0x1449e8dd0
 
 class Quest {
 public:
 	static const int QuestMinId = 90000;
 	static std::vector<Quest> Quests;
 	static int size;
-	static void PopulateQuests() 
-	{
-		if (!std::filesystem::exists("nativePC/quest"))
-			return;
-		for (auto& entry : std::filesystem::directory_iterator("nativePC/quest"))
-		{
-			std::string name = entry.path().filename().string();
-			if (entry.path().filename().extension().string() != ".mib") continue;
-
-			int id;
-			if (sscanf_s(name.c_str(), "questData_%d.mib", &id) != 1) continue;
-			if (id < 90000) continue;
-
-			LOG(WARN) << "found quest: " << id;
-			Quests.push_back(Quest(id));
-		}
-		size = Quest::Quests.size();
-	}
 
 
-	int file_id;
+	
+	long long file_id;
+
+	struct {
+		void* vtable = nullptr;
+		long long questId;
+
+		char stuff[0x50];
+	} questNoListObj;
+
 	int starcount = 10;
 	std::string questPath;
 
@@ -73,11 +79,32 @@ public:
 		char buf[250];
 		sprintf_s(buf, "quest\\questData_%05d", id);
 		questPath = buf;
+
+		questNoListObj.questId = id;
 	}
 };
 
-int					Quest::size;
-std::vector<Quest>	Quest::Quests;
+size_t				AddedQuestCount;
+std::vector<Quest>	AddedQuests;
+
+static void PopulateQuests() 
+{
+	if (!std::filesystem::exists("nativePC/quest"))
+		return;
+	for (auto& entry : std::filesystem::directory_iterator("nativePC/quest"))
+	{
+		std::string name = entry.path().filename().string();
+		if (entry.path().filename().extension().string() != ".mib") continue;
+
+		int id;
+		if (sscanf_s(name.c_str(), "questData_%d.mib", &id) != 1) continue;
+		if (id < 90000) continue;
+
+		LOG(WARN) << "found quest: " << id;
+		AddedQuests.push_back(Quest(id));
+	}
+	AddedQuestCount = AddedQuests.size();
+}
 
 
 HOOKFUNC(CheckQuestComplete, bool, void* this_ptr, int id)
@@ -103,15 +130,15 @@ HOOKFUNC(CheckQuestUnlock, bool, int id)
 HOOKFUNC(QuestCount, int, void)
 {
 	LOG(INFO) << "QuestCount";
-	return originalQuestCount() + Quest::size;
+	return originalQuestCount() + (int) AddedQuestCount;
 }
 
 HOOKFUNC(QuestFromIndex, int, void* this_ptr, int index)
 {
 	if (index >= originalQuestCount())
 	{
-		LOG(INFO) << "QuestFromIndex :" << index << ":" << Quest::Quests[index - originalQuestCount()].file_id;
-		return Quest::Quests[index - originalQuestCount()].file_id;
+		LOG(INFO) << "QuestFromIndex :" << index << ":" << AddedQuests[index - originalQuestCount()].file_id;
+		return (int) AddedQuests[index - originalQuestCount()].file_id;
 	}
 	return originalQuestFromIndex(this_ptr, index);
 }
@@ -137,19 +164,66 @@ HOOKFUNC(GetQuestCategory, long long, int questID, int unkn)
 	return ret;
 }
 
-void InjectQuestLoader()
+void ModifyQuestData(void* obj, char* file)
 {
-	Quest::PopulateQuests();
-	LOG(WARN) << "Hooking Quest Loader";
-
-	AddHook(QuestCount, QuestCountOffset);
-	AddHook(QuestFromIndex, QuestNoFromIndexOffset);
-
-	AddHook(CheckQuestUnlock, QuestCheckUnlockOffset);
-	AddHook(CheckQuestComplete, QuestCheckCompleteOffset);
-
-	AddHook(GetQuestCategory, QuestCategoryOffset);
-	AddHook(CheckStarAndCategory, QuestStarCategoryOffset);
+	for (auto& quest : AddedQuests)
+	{
+		if (quest.questPath == std::string(file))
+		{
+			LOG(INFO) << "Quest Data loaded : " << file;
+			*(int*)((char*)obj + 0xb0 + 0x70) = (int) quest.file_id;
+		}
+	}
 }
 
+void ModifyQuestNoList(void* obj, char* file)
+{
+	int* questCount = (int*)((char*)obj + 0xb8);
+	void*** questIds = (void***)((char*)obj + 0xc8);
+
+	LOG(INFO) << "Overriding questNoList. " << *questCount << "initial entries.";
+
+	for (int i = 0; i < (int) AddedQuestCount; ++i)
+	{
+		void** nextQuestAddress = *questIds + i + *questCount;
+		*nextQuestAddress =  &AddedQuests[i].questNoListObj;
+	}
+	*questCount += (int) AddedQuestCount;
+}
+
+HOOKFUNC(LoadObjFile, void*, void* fileMgr, void* objDef, char* filename, int flag)
+{
+	void* object = originalLoadObjFile(fileMgr, objDef, filename, flag);
+
+	if (flag == 1)
+	{
+		switch ((long long)objDef)
+		{
+		case QuestDataObjDefAddress:
+			ModifyQuestData(object, filename);
+			break;
+		case QuestNoListObjDefAddress:
+			ModifyQuestNoList(object, filename);
+			break;
+		}
+	}
+	return object;
+}
+
+void InjectQuestLoader()
+{
+	PopulateQuests();
+	LOG(WARN) << "Hooking Quest Loader";
+
+	AddHook(QuestCount, QuestCountAddress);
+	AddHook(QuestFromIndex, QuestNoFromIndexAddress);
+
+	AddHook(CheckQuestUnlock, QuestCheckUnlockAddress);
+	AddHook(CheckQuestComplete, QuestCheckCompleteAddress);
+
+	AddHook(GetQuestCategory, QuestCategoryAddress);
+	AddHook(CheckStarAndCategory, QuestStarCategoryAddress);
+
+	AddHook(LoadObjFile, LoadObjFromFileAddress);
+}
 
