@@ -24,9 +24,6 @@
     <ClCompile Include="log.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CRCBypass.cpp">
-      <Filter>Source Files\mods</Filter>
-    </ClCompile>
     <ClCompile Include="SubspeciesLoader.cpp">
       <Filter>Source Files\mods</Filter>
     </ClCompile>

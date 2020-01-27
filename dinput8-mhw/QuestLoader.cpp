@@ -2,7 +2,6 @@
 #include "dll.h"
 
 // UI Filter Function
-// 44 89 44 24 18 41 54 41 57 48 83 ec 58 41 89 d4 49 89 cf 83 fa 02
 /*
 	  if (0 < iVar5) {
 		puVar20 = (uint *)(param_1 + 0x3f70);
@@ -21,25 +20,29 @@
 				uStack112 = 0x1537515c1;
 				iVar8 = Quest:CheckUnlock((ulonglong)uVar1);
 */
-#define UIFilterCheckAddress			0x1537513e0
-#define QuestCheckCompleteAddress		0x153eb38e0
-#define	QuestStarCategoryAddress		0x152ed7330
-#define QuestCheckUnlockAddress			0x156837d70
+// 44 89 44 24 18 41 54 41 57 48 83 ec 58 41 89 d4 49 89 cf 83 fa 02
+#define UIFilterCheckAddress			0x14aff1020
+// Call at +0x1BB
+#define QuestCheckCompleteAddress		0x14b7b35f0
+// Call at +0x1D1
+#define	QuestStarCategoryAddress		0x14a8c7590
+// Call at +0x1DC
+#define QuestCheckUnlockAddress			0x14dfa3250
 
 // First function call in QuestCheckComplete
-#define QuestCategoryAddress			0x156835910		
+#define QuestCategoryAddress			0x14dfa12f0		
 
 
 // ff c0 48 8d 49 04 83 39 ff 75 f5 c3
 // SUBSTRACT 0x10
-#define QuestCountAddress				0x153ecdcc0
+#define QuestCountAddress				0x14b7cf970
 
 // 48 63 c2 ?????????????? 8b 04 81 c3
-#define QuestNoFromIndexAddress			0x153ecdae0	
+#define QuestNoFromIndexAddress			0x14b7cf890	
 
 // 48 83 ec 30 80 b9 7b 80 20 00 00
 // SUBSTRACT 0x1a
-#define LoadObjFromFileAddress			0x160adf1e0
+#define LoadObjFromFileAddress			0x14fc14f40
 
 
 
@@ -47,12 +50,12 @@
 // Follow pointer 0x58 bytes before that string
 // Address loaded in RCX at 0xA bytes in function pointed
 // (First parameter of first function call)
-#define QuestDataObjDefAddress			0x144d2c908
+#define QuestDataObjDefAddress			0x144ce28f8
 
 // Search for string 'rQuestNoList'
 // Follow pointer 0x18 bytes before that string
 // Address loaded in RCX at 0xA bytes in function pointed
-#define QuestNoListObjDefAddress		0x1449e8dd0
+#define QuestNoListObjDefAddress		0x14499edd0
 
 class Quest {
 public:
@@ -158,7 +161,7 @@ HOOKFUNC(GetQuestCategory, long long, int questID, int unkn)
 {
 	auto ret = originalGetQuestCategory(questID, unkn);
 	if (questID >= Quest::QuestMinId) {
-		LOG(INFO) << "GetQuestCategory " << questID;
+		LOG(DEBUG) << "GetQuestCategory " << questID;
 		return 1;
 	}
 	return ret;
@@ -181,7 +184,7 @@ void ModifyQuestNoList(void* obj, char* file)
 	int* questCount = (int*)((char*)obj + 0xb8);
 	void*** questIds = (void***)((char*)obj + 0xc8);
 
-	LOG(INFO) << "Overriding questNoList. " << *questCount << "initial entries.";
+	LOG(INFO) << "Overriding questNoList. " << *questCount << " initial entries.";
 
 	for (int i = 0; i < (int) AddedQuestCount; ++i)
 	{
@@ -212,8 +215,8 @@ HOOKFUNC(LoadObjFile, void*, void* fileMgr, void* objDef, char* filename, int fl
 
 void InjectQuestLoader()
 {
-	PopulateQuests();
 	LOG(WARN) << "Hooking Quest Loader";
+	PopulateQuests();
 
 	AddHook(QuestCount, QuestCountAddress);
 	AddHook(QuestFromIndex, QuestNoFromIndexAddress);

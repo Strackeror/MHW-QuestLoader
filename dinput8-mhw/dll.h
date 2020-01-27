@@ -13,11 +13,6 @@ RET __fastcall NAME(__VA_ARGS__)
 extern nlohmann::json ConfigFile;
 void LoadConfig();
 
-
-void KillCRCThreads();
-void StartTerminateLoop();
-void InjectCRCBypass();
-
 void InjectForceNativePC();
 
 void InjectSubspeciesLoader();

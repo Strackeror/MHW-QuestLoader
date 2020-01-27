@@ -170,7 +170,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="config.cpp" />
-    <ClCompile Include="CRCBypass.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="ForceNativePC.cpp" />
     <ClCompile Include="log.cpp" />

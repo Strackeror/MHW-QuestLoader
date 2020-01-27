@@ -25,12 +25,12 @@ void logToFile(const char* stamp, const char* msg)
 void logToConsole(int l, const char* stamp, const char* msg)
 {
 	static HANDLE console = 0;
-	if (!logcmd) return;
+	if (!logcmd && l != ERR) return;
 
 	if (!console )
 	{
 		AllocConsole();
-		SetConsoleTitle("Intercept Log");
+		SetConsoleTitle("Stracker's Loader");
 		console = GetStdHandle(STD_OUTPUT_HANDLE);
 	}
 	SetConsoleTextAttribute(console, FOREGROUND_GREEN);

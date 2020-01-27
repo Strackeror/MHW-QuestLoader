@@ -3,10 +3,10 @@
 
 
 // 40 56 57 41 57 48 81 ec c0 00 00 00 8b 91 68 01 00 00
-#define SpawnMonsterOffset		0x156cd95e0
+#define SpawnMonsterOffset		0x14e42c110
 
 // 44 89 44 24 18 89 54 24 10 48 89 4c 24 08 55 53 56 57 41 54 41 55 41 56 41 57 48 8d 6c 24 e1 48 81 ec a8 00 00 00 48 89 cb
-#define ConstructMonsterOffset	0x1576dfe10 
+#define ConstructMonsterOffset	0x14ec62f90 
 
 //
 // Custom subspecies path
