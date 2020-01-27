@@ -13,16 +13,20 @@ tDirectInput8Create oDirectInput8Create = nullptr;
 
 void InitCodeInjections()
 {
-	LoadConfig();
 
 	LOG(WARN) << "Quest Loader";
 	LOG(ERR) << "Game process will not terminate properly until this window is closed";
 
 	KillCRCThreads();
 	StartTerminateLoop();
+
 	MH_Initialize();
+
 	InjectForceNativePC();
 	InjectSubspeciesLoader();
+	InjectQuestLoader();
+
+	MH_ApplyQueued();
 }
 
 
@@ -33,6 +37,8 @@ void Initialize()
 	strcat_s(syspath, "\\dinput8.dll");
 	HMODULE hMod = LoadLibrary(syspath);
 	oDirectInput8Create = (tDirectInput8Create)GetProcAddress(hMod, "DirectInput8Create");
+
+	LoadConfig();
 }
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)

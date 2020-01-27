@@ -8,7 +8,7 @@
 t##NAME original##NAME; \
 RET __fastcall NAME(__VA_ARGS__)
 
-#define AddHook(NAME, OFFSET) do {MH_CreateHook((void*)OFFSET, & NAME, (LPVOID *)& original##NAME); MH_EnableHook((void *)OFFSET);} while(0)
+#define AddHook(NAME, OFFSET) do {MH_CreateHook((void*)OFFSET, & NAME, (LPVOID *)& original##NAME); MH_QueueEnableHook((void *)OFFSET);} while(0)
 
 extern nlohmann::json ConfigFile;
 void LoadConfig();
