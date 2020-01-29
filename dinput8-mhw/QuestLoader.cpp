@@ -41,10 +41,14 @@
 #define QuestNoFromIndexAddress			0x14b7cf890	
 
 // 48 83 ec 30 80 b9 7b 80 20 00 00
-// SUBSTRACT 0x1a
+// SUBSTRACT 0x1A
 #define LoadObjFromFileAddress			0x14fc14f40
 
 
+
+// 48 8b 56 18 48 89 c1 4c 8b 00 41 ff 50 68 48 8b 5c 24 30 89 6e 0c 48 8b 6c 24 38 48 89 7e 18 48 8b 74 24 40 48 83 c4 20 5f c3
+// SUBSTRACT 0x6E
+#define ListIncreaseCapacityOffset		0x1466f65b0
 
 // Search for string 'rQuestData'
 // Follow pointer 0x58 bytes before that string
@@ -103,12 +107,11 @@ static void PopulateQuests()
 		if (sscanf_s(name.c_str(), "questData_%d.mib", &id) != 1) continue;
 		if (id < 90000) continue;
 
-		LOG(WARN) << "found quest: " << id;
+		LOG(WARN) << "Registered quest at " << entry.path().string();
 		AddedQuests.push_back(Quest(id));
 	}
 	AddedQuestCount = AddedQuests.size();
 }
-
 
 HOOKFUNC(CheckQuestComplete, bool, void* this_ptr, int id)
 {
@@ -179,12 +182,18 @@ void ModifyQuestData(void* obj, char* file)
 	}
 }
 
+void (*IncreaseListCapacity)(void* list, unsigned int nsize) = 
+	(void (*)(void*, unsigned int)) ListIncreaseCapacityOffset;
+
 void ModifyQuestNoList(void* obj, char* file)
 {
 	int* questCount = (int*)((char*)obj + 0xb8);
+	int* capacity =	(int*)((char*)obj + 0xbc);
 	void*** questIds = (void***)((char*)obj + 0xc8);
 
 	LOG(INFO) << "Overriding questNoList. " << *questCount << " initial entries.";
+
+	IncreaseListCapacity((char*)obj + 0xb0, *capacity + AddedQuestCount);
 
 	for (int i = 0; i < (int) AddedQuestCount; ++i)
 	{
@@ -215,6 +224,8 @@ HOOKFUNC(LoadObjFile, void*, void* fileMgr, void* objDef, char* filename, int fl
 
 void InjectQuestLoader()
 {
+	if (ConfigFile.value("disableQuestLoader", false)) return;
+
 	LOG(WARN) << "Hooking Quest Loader";
 	PopulateQuests();
 

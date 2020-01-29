@@ -1,5 +1,6 @@
 {
   "logfile": false,
   "logcmd" : false,
-  "outputEveryPath": false
+  "outputEveryPath": false,
+  "disableQuestLoader": false
 }
