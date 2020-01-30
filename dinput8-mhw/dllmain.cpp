@@ -29,6 +29,7 @@ void InitCodeInjections()
 	InjectForceNativePC();
 	InjectSubspeciesLoader();
 	InjectQuestLoader();
+	InjectQOL();
 
 	MH_ApplyQueued();
 }
