@@ -8,10 +8,10 @@
 #include "log.h"
 #include "dll.h"
 
-// 48 89 5c 24 08 48 89 74 24 10 57 b8 80 2f 01 00
-// Get address loaded at +0x4f bytes
-#define BuildNumberOffset	0x142f93068
-#define BuildNumberCheck	"401727"
+
+// search for build number as string
+#define BuildNumberOffset	0x14307c298
+#define BuildNumberCheck	"402862"
 
 void InitCodeInjections()
 {
@@ -21,6 +21,7 @@ void InitCodeInjections()
 		LOG(ERR) << "Build Number check failed.";
 		LOG(ERR) << "Wrong Version of MHW detected";
 		LOG(ERR) << "Loader needs to be updated.";
+		return;
 	}
 
 	MH_Initialize();
