@@ -13,6 +13,8 @@
 // 40 53 48 83 ec 20 48 8b 81 70 76 00 00 0f 57 c0 48 89 cb 0f 2f 40 64 73 59 8b 81 20 ea 01 00
 #define TurnClawCheckAddress	0x15dcc6740
 
+#define MonsterAddPartTimerAddress 0x1578993d0
+
 // 84 c0 74 1e 48 8b 8b e0 89 00 00 48 8d 54 24 38 41 b8 01 00 00 00 48 8b 89 30 01 00 00
 // Substract 0x18
 #define LaunchActionAddress		0x15dce8110
@@ -61,6 +63,7 @@ static std::set<void*> actionUsed;
 HOOKFUNC(TurnClawCheck, bool, void* monster)
 {
 	std::string action(getLastActionName(monster));
+	//LOG(INFO) << "Attempting claw check : " << action;
 	if (action.find("TURN_L") != -1 || action.find("TURN_R") != -1 || action.find("_EXTEND") != -1)
 		return true;
 	return false;
@@ -69,20 +72,17 @@ HOOKFUNC(TurnClawCheck, bool, void* monster)
 // rage status -> monster+0x1bddc
 // rage count -> monster+0x1bdfc
 
+static bool allowNextTenderize = false;
+
 bool CheckTenderize(void* monster, float dmg)
 {
-	float* duration = (float*) offsetPtr(monster, 0x1c3f0 + 0x4a0);
-	*duration = 5;
-	
 	char* actionName = getLastActionName(monster);
 	LOG(INFO) << "Attempting tenderize : " << actionName;
-	if ((std::string(actionName).find("_EXTEND") != -1 || std::string(actionName).find("_RIDE_DOWN") != -1)
+	if ((std::string(actionName).find("_EXTEND") != -1 || std::string(actionName).find("_RIDE_DOWN") || std::string(actionName).find("_RIDE_SUCCESS") != -1)
 		&& actionUsed.find(monster) == actionUsed.end()
 		&& (int) dmg != 20) // prevent claw slap tenderizing
 	{
-		LOG(INFO) << "Tenderize succesful !";
 		actionUsed.emplace(monster);
-		*duration = 3000;
 		return true;
 	}
 	return false;
@@ -91,16 +91,29 @@ bool CheckTenderize(void* monster, float dmg)
 HOOKFUNC(TenderizePart, bool, void* obj, void* data, float dmg)
 {
 	void* monster = *(void**) offsetPtr(obj, 8);
-	bool overrideTenderize = CheckTenderize(monster, dmg);
-	if (overrideTenderize)
-		return originalTenderizePart(obj, data, 100);
-	return true;
+	allowNextTenderize = CheckTenderize(monster, dmg);
+	dmg = allowNextTenderize ? 100 : dmg;
+	return originalTenderizePart(obj, data, 100);
 }
 
 HOOKFUNC(TenderizePartMP, void, void* monster, long long* params)
 {
-	if (CheckTenderize(monster, 100))
-		originalTenderizePartMP(monster, params);
+	allowNextTenderize = CheckTenderize(monster, 100);
+	originalTenderizePartMP(monster, params);
+}
+
+HOOKFUNC(AddPartTimer, void*, void* timerMgr, unsigned int index, float timerStart)
+{
+	float* duration = offsetPtr<float>(timerMgr, 0x4a0);
+	if (!allowNextTenderize)
+	{
+		LOG(INFO) << "Denying tenderize timer";
+		return nullptr;
+	}
+	LOG(INFO) << "Allowing tenderize timer";
+	*duration = 3000;
+	allowNextTenderize = false;
+	return originalAddPartTimer(timerMgr, index, timerStart);
 }
 
 HOOKFUNC(LaunchAction, bool, void* monster, int actionId)
@@ -115,7 +128,9 @@ HOOKFUNC(LaunchAction, bool, void* monster, int actionId)
 void InjectQOL()
 {
 	AddHook(TenderizePart, TenderizePartAddress);
+	AddHook(TenderizePartMP, TenderizePartMPAddress);
+	AddHook(AddPartTimer, MonsterAddPartTimerAddress);
+
 	AddHook(TurnClawCheck, TurnClawCheckAddress);
 	AddHook(LaunchAction, LaunchActionAddress);
-	AddHook(TenderizePartMP, TenderizePartMPAddress);
 }
