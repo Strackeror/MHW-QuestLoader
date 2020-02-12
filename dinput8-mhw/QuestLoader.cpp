@@ -29,6 +29,11 @@
 // Call at +0x1DC
 #define QuestCheckFlagAddress			0x15cdaa780
 
+// 48 8d 8f e0 53 10 00 48 8b 5c 24 30 48 83 c4 20 5f
+// SUBSTRACT 0x60
+// Looks the same as QuestCheckComplete, but offset is 153e0
+#define QuestCheckProgressAddress		0x15a498e90
+
 // First function call in QuestCheckComplete
 #define QuestCategoryAddress			0x15cda8b40		
 
@@ -60,6 +65,7 @@
 // Follow pointer 0x18 bytes before that string
 // Address loaded in RCX at 0xA bytes in function pointed
 #define QuestNoListObjDefAddress		0x144aa4d10
+
 
 class Quest {
 public:
@@ -131,6 +137,16 @@ HOOKFUNC(CheckQuestUnlock, bool, int id)
 		return true;
 	}
 	return originalCheckQuestUnlock(id);
+}
+
+HOOKFUNC(CheckQuestProgress, bool, int id)
+{
+	if (id >= Quest::QuestMinId)
+	{
+		LOG(INFO) << "CheckQuestProgress: " << id;
+		return true;
+	}
+	return originalCheckQuestProgress(id);
 }
 
 HOOKFUNC(QuestCount, int, void)
@@ -234,6 +250,7 @@ void InjectQuestLoader()
 
 	AddHook(CheckQuestUnlock, QuestCheckFlagAddress);
 	AddHook(CheckQuestComplete, QuestCheckCompleteAddress);
+	AddHook(CheckQuestProgress, QuestCheckProgressAddress);
 
 	AddHook(GetQuestCategory, QuestCategoryAddress);
 	AddHook(CheckStarAndCategory, QuestStarCategoryAddress);
