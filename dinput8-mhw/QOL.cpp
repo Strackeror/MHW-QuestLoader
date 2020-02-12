@@ -19,6 +19,10 @@
 // Substract 0x18
 #define LaunchActionAddress		0x15dce8110
 
+
+//40 55 57 41 56 48 8d ac 24 50 ff ff ff 48 81 ec b0 01 00 00 48 89 cf 49 89 d6 48 8b 49 08 48 85 c9
+// Attack Apply		
+
 template<typename T>
 inline T* offsetPtr(void* ptr, int offset) { return (T*)(((char*)ptr) + offset); }
 
@@ -37,6 +41,7 @@ void DumpMonsterActions(void* monster)
 		for (long long i = 1; i < sz; ++i)
 		{
 			void* action = actionList[i];
+			if (action == nullptr) continue;
 			char* actionName = *offsetPtr<char*>(action, 0x20);
 			LOG(INFO) << "Group:" << group << " ID:" << i << " Name:" << actionName;
 		}
@@ -58,31 +63,36 @@ char* getLastActionName(void* monster)
 	return actionName;
 }
 
+bool wordMatches(std::string actionName, const std::set<std::string>& words)
+{
+	for (auto find : words)
+		if (actionName.find(find) != -1)
+			return true;
+	return false;
+}
 
 static std::set<void*> actionUsed;
 HOOKFUNC(TurnClawCheck, bool, void* monster)
 {
+	static std::set<std::string> keywords = { "TURN_L", "TURN_R", "_EXTEND"};
 	std::string action(getLastActionName(monster));
-	//LOG(INFO) << "Attempting claw check : " << action;
-	if (action.find("TURN_L") != -1 || action.find("TURN_R") != -1 || action.find("_EXTEND") != -1)
-		return true;
-	return false;
+	return wordMatches(action, keywords);
 }
 
 // rage status -> monster+0x1bddc
 // rage count -> monster+0x1bdfc
+//  (+0x10 post rajang ?)
 
 static bool allowNextTenderize = false;
 
 bool CheckTenderize(void* monster, float dmg)
 {
-	char* actionName = getLastActionName(monster);
-	LOG(INFO) << "Attempting tenderize : " << actionName;
-	if ((std::string(actionName).find("_EXTEND") != -1 || std::string(actionName).find("_RIDE_DOWN") || std::string(actionName).find("_RIDE_SUCCESS") != -1)
+	static std::set<std::string> keywords = { "_RIDE_DOWN", "_RIDE_SUCCESS", "_EXTEND"};
+	std::string actionName = getLastActionName(monster);
+	if (wordMatches(actionName, keywords)
 		&& actionUsed.find(monster) == actionUsed.end()
 		&& (int) dmg != 20) // prevent claw slap tenderizing
 	{
-		actionUsed.emplace(monster);
 		return true;
 	}
 	return false;
@@ -91,15 +101,29 @@ bool CheckTenderize(void* monster, float dmg)
 HOOKFUNC(TenderizePart, bool, void* obj, void* data, float dmg)
 {
 	void* monster = *(void**) offsetPtr(obj, 8);
+	LOG(INFO) << "TenderizePart " << getLastActionName(monster) << " " << dmg;
 	allowNextTenderize = CheckTenderize(monster, dmg);
-	dmg = allowNextTenderize ? 100 : dmg;
-	return originalTenderizePart(obj, data, 100);
+	if (allowNextTenderize) actionUsed.emplace(monster);
+	return originalTenderizePart(obj, data, dmg);
 }
 
 HOOKFUNC(TenderizePartMP, void, void* monster, long long* params)
 {
+	LOG(INFO) << "TenderizePartMP " << getLastActionName(monster);
 	allowNextTenderize = CheckTenderize(monster, 100);
+	if (allowNextTenderize) actionUsed.emplace(monster);
 	originalTenderizePartMP(monster, params);
+}
+
+HOOKFUNC(LoadDamageVals, void, void* dmg, void* _2, void* data)
+{
+	originalLoadDamageVals(dmg, _2, data);
+	float* tenderizer = offsetPtr<float>(data, 0x70);
+	if (*tenderizer <= 0.1) return;
+
+	void* monster = *offsetPtr<void*>(dmg, 8);
+	if (CheckTenderize(monster, *tenderizer)) *tenderizer = 100;
+	LOG(INFO) << "Tenderize Value :" << *tenderizer;
 }
 
 HOOKFUNC(AddPartTimer, void*, void* timerMgr, unsigned int index, float timerStart)
@@ -107,21 +131,21 @@ HOOKFUNC(AddPartTimer, void*, void* timerMgr, unsigned int index, float timerSta
 	float* duration = offsetPtr<float>(timerMgr, 0x4a0);
 	if (!allowNextTenderize)
 	{
-		LOG(INFO) << "Denying tenderize timer";
+		LOG(INFO) << "AddPartTimer Denying tenderize timer";
 		return nullptr;
 	}
-	LOG(INFO) << "Allowing tenderize timer";
+	LOG(INFO) << "AddPArtTimer Allowing tenderize timer";
 	*duration = 3000;
 	allowNextTenderize = false;
 	return originalAddPartTimer(timerMgr, index, timerStart);
 }
+
 
 HOOKFUNC(LaunchAction, bool, void* monster, int actionId)
 {
 	if (actionUsed.find(monster) != actionUsed.end())
 		actionUsed.erase(monster);
 	bool ret = originalLaunchAction(monster, actionId);
-	//LOG(INFO) << getLastActionName(monster);
 	return ret;
 }
 
@@ -133,4 +157,6 @@ void InjectQOL()
 
 	AddHook(TurnClawCheck, TurnClawCheckAddress);
 	AddHook(LaunchAction, LaunchActionAddress);
+
+	AddHook(LoadDamageVals, 0x14df75040);
 }

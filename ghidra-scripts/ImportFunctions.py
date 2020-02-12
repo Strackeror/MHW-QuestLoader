@@ -2,12 +2,12 @@
 # @author Strackeror
 # @category MH
 
+import time
 import json
 import ghidra
-import time
 
 
-from ghidra.app.plugin.core.searchmem.mask import *
+
 
 symbolTable = currentProgram.getSymbolTable()
 namespace = symbolTable.getNamespace("MH", currentProgram.getGlobalNamespace())
@@ -16,7 +16,7 @@ if namespace is None:
 
 monitor = ghidra.util.task.TaskMonitor.DUMMY
 
-targetName = str(askFile("Export file", "Choose export file"))
+targetName = str(askFile("Import file", "Choose import file"))
 targetFile = open(targetName, 'r')
 json_dict = json.load(targetFile)
 
