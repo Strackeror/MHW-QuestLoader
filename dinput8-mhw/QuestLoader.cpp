@@ -240,7 +240,7 @@ HOOKFUNC(LoadObjFile, void*, void* fileMgr, void* objDef, char* filename, int fl
 
 void InjectQuestLoader()
 {
-	if (ConfigFile.value("disableQuestLoader", false)) return;
+	if (!ConfigFile.value("enableQuestLoader", true)) return;
 
 	LOG(WARN) << "Hooking Quest Loader";
 	PopulateQuests();

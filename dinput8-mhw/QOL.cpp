@@ -87,7 +87,7 @@ static bool allowNextTenderize = false;
 
 bool CheckTenderize(void* monster, float dmg)
 {
-	static std::set<std::string> keywords = { "_RIDE_DOWN", "_RIDE_SUCCESS", "_EXTEND"};
+	static std::set<std::string> keywords = { "_EXTEND"};
 	std::string actionName = getLastActionName(monster);
 	if (wordMatches(actionName, keywords)
 		&& actionUsed.find(monster) == actionUsed.end()
@@ -151,6 +151,8 @@ HOOKFUNC(LaunchAction, bool, void* monster, int actionId)
 
 void InjectQOL()
 {
+	if (!ConfigFile.value("enableClutchRework", false)) return;
+
 	AddHook(TenderizePart, TenderizePartAddress);
 	AddHook(TenderizePartMP, TenderizePartMPAddress);
 	AddHook(AddPartTimer, MonsterAddPartTimerAddress);
