@@ -1,8 +1,9 @@
+// dllmain.cpp : Defines the entry point for the DLL application.
+#include <Windows.h>
+#include <log.h>
+#include <hooks.h>
+
 #include <set>
-
-#include "dll.h"
-#include "log.h"
-
 
 // 48 89 5c 24 08 48 89 6c 24 10 48 89 74 24 18 57 48 83 ec 20 48 89 d6 48 89 cf 48 85 d2 0f 84 43 01 00 00 48 8b 49 08
 #define	TenderizePartAddress	0x14df814d0
@@ -74,7 +75,7 @@ bool wordMatches(std::string actionName, const std::set<std::string>& words)
 static std::set<void*> actionUsed;
 HOOKFUNC(TurnClawCheck, bool, void* monster)
 {
-	static std::set<std::string> keywords = { "TURN_L", "TURN_R", "_EXTEND"};
+	static std::set<std::string> keywords = { "TURN_L", "TURN_R", "_EXTEND" };
 	std::string action(getLastActionName(monster));
 	return wordMatches(action, keywords);
 }
@@ -87,11 +88,11 @@ static bool allowNextTenderize = false;
 
 bool CheckTenderize(void* monster, float dmg)
 {
-	static std::set<std::string> keywords = { "_EXTEND"};
+	static std::set<std::string> keywords = { "_EXTEND" };
 	std::string actionName = getLastActionName(monster);
 	if (wordMatches(actionName, keywords)
 		&& actionUsed.find(monster) == actionUsed.end()
-		&& (int) dmg != 20) // prevent claw slap tenderizing
+		&& (int)dmg != 20) // prevent claw slap tenderizing
 	{
 		return true;
 	}
@@ -100,7 +101,7 @@ bool CheckTenderize(void* monster, float dmg)
 
 HOOKFUNC(TenderizePart, bool, void* obj, void* data, float dmg)
 {
-	void* monster = *(void**) offsetPtr(obj, 8);
+	void* monster = *(void**)offsetPtr(obj, 8);
 	LOG(INFO) << "TenderizePart " << getLastActionName(monster) << " " << dmg;
 	allowNextTenderize = CheckTenderize(monster, dmg);
 	if (allowNextTenderize) actionUsed.emplace(monster);
@@ -149,9 +150,12 @@ HOOKFUNC(LaunchAction, bool, void* monster, int actionId)
 	return ret;
 }
 
-void InjectQOL()
+void onLoad()
 {
-	if (!ConfigFile.value("enableClutchRework", false)) return;
+
+	LOG(INFO) << "ClutchRework Loading...";
+
+    MH_Initialize();
 
 	AddHook(TenderizePart, TenderizePartAddress);
 	AddHook(TenderizePartMP, TenderizePartMPAddress);
@@ -161,4 +165,29 @@ void InjectQOL()
 	AddHook(LaunchAction, LaunchActionAddress);
 
 	AddHook(LoadDamageVals, 0x14df75040);
+
+	MH_ApplyQueued();
+
+	LOG(INFO) << "DONE !";
 }
+
+
+
+BOOL APIENTRY DllMain( HMODULE hModule,
+                       DWORD  ul_reason_for_call,
+                       LPVOID lpReserved
+                     )
+{
+    switch (ul_reason_for_call)
+    {
+    case DLL_PROCESS_ATTACH:
+        onLoad();
+        break;
+    case DLL_THREAD_ATTACH:
+    case DLL_THREAD_DETACH:
+    case DLL_PROCESS_DETACH:
+        break;
+    }
+    return TRUE;
+}
+

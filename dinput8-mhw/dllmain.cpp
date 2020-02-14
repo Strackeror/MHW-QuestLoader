@@ -4,6 +4,8 @@
 #include <winternl.h>
 #include <TlHelp32.h>
 
+#include <filesystem>
+
 #include "MinHook.h"
 #include "log.h"
 #include "dll.h"
@@ -29,9 +31,24 @@ void InitCodeInjections()
 	InjectForceNativePC();
 	InjectSubspeciesLoader();
 	InjectQuestLoader();
-	InjectQOL();
 
 	MH_ApplyQueued();
+}
+
+void LoadAllPluginDlls()
+{
+	if (!std::filesystem::exists("nativePC\\plugins"))
+		return;
+	for (auto& entry : std::filesystem::directory_iterator("nativePC\\plugins"))
+	{
+		std::string name = entry.path().filename().string();
+		if (entry.path().filename().extension().string() != ".dll") continue;
+		LOG(INFO) << "Loading plugin " << entry.path();
+		auto dll = LoadLibrary(entry.path().string().c_str());
+		if (!dll)
+			LOG(ERR) << "Failed to load " << entry.path();
+
+	}
 }
 
 typedef HRESULT(WINAPI* tDirectInput8Create)(HINSTANCE inst_handle, DWORD version, const IID& r_iid, LPVOID* out_wrapper, LPUNKNOWN p_unk);
@@ -46,6 +63,7 @@ void Initialize()
 	oDirectInput8Create = (tDirectInput8Create)GetProcAddress(hMod, "DirectInput8Create");
 
 	LoadConfig();
+	LoadAllPluginDlls(); 
 	InitCodeInjections();
 }
 

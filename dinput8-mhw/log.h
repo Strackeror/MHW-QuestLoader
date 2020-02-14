@@ -6,6 +6,13 @@
 #include <filesystem>
 #include <vector>
 
+#ifndef PLUGIN
+#define DllExport   __declspec( dllexport )
+#else
+#define DllExport   __declspec( dllimport )
+#endif
+
+
 
 enum LogLevel {
 	DEBUG = 0,
@@ -15,8 +22,11 @@ enum LogLevel {
 };
 extern LogLevel min_log_level;
 
-struct LOG {
-protected:
+#pragma warning( disable: 4251 )
+
+class DllExport LOG 
+{
+private:
 	std::stringstream s_;
 	LogLevel l_;
 	LOG(const LOG& o) = delete;
