@@ -1,6 +1,7 @@
 #include "dll.h"
-#include "log.h"
+#include "loader.h"
 
+using namespace loader;
 
 // 40 56 57 41 57 48 81 ec c0 00 00 00 8b 91 68 01 00 00
 #define SpawnMonsterOffset		0x15d3835f0

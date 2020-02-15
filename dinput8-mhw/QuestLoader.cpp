@@ -1,5 +1,7 @@
-#include "log.h"
+#include "loader.h"
 #include "dll.h"
+
+using namespace loader;
 
 // UI Filter Function
 /*
@@ -102,9 +104,9 @@ std::vector<Quest>	AddedQuests;
 
 static void PopulateQuests() 
 {
-	if (!std::filesystem::exists("nativePC/quest"))
+	if (!std::filesystem::exists("nativePC\\quest"))
 		return;
-	for (auto& entry : std::filesystem::directory_iterator("nativePC/quest"))
+	for (auto& entry : std::filesystem::directory_iterator("nativePC\\quest"))
 	{
 		std::string name = entry.path().filename().string();
 		if (entry.path().filename().extension().string() != ".mib") continue;
@@ -240,7 +242,7 @@ HOOKFUNC(LoadObjFile, void*, void* fileMgr, void* objDef, char* filename, int fl
 
 void InjectQuestLoader()
 {
-	if (ConfigFile.value("disableQuestLoader", false)) return;
+	if (!ConfigFile.value("enableQuestLoader", true)) return;
 
 	LOG(WARN) << "Hooking Quest Loader";
 	PopulateQuests();

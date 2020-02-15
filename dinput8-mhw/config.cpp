@@ -1,8 +1,10 @@
 #include <filesystem>
 #include <fstream>
 
-#include "log.h"
+#include "loader.h"
 #include "dll.h"
+
+using namespace loader;
 
 nlohmann::json ConfigFile;
 
