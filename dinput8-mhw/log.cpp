@@ -1,11 +1,18 @@
-#include "log.h"
+#include "loader.h"
 #include "dll.h"
 
 #include <fstream>
 
+using namespace loader;
+
+#ifndef _DEBUG
+	LogLevel loader::MinLogLevel = INFO;
+#else
+	LogLevel loader::MinLogLevel = DEBUG;
+#endif // !_DEBUG
+
 bool configLoaded = false;
 
-LogLevel min_log_level = INFO;
 bool logcmd = false;
 bool logfile = false;
 
@@ -58,7 +65,7 @@ void _log(int l, const char* s)
 		logfile = ConfigFile.value<bool>("logfile", false);
 	}
 
-	if (l >= min_log_level) {
+	if (l >= MinLogLevel) {
 		time_t mytime = time(NULL);
 		tm mytm;
 		localtime_s(&mytm, &mytime);

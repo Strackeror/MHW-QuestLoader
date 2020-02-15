@@ -7,18 +7,20 @@
 #include <filesystem>
 
 #include "MinHook.h"
-#include "log.h"
+#include "loader.h"
 #include "dll.h"
 
+using namespace loader;
 
 // search for build number as string
 #define BuildNumberOffset	0x14307c298
-#define BuildNumberCheck	"402862"
+const char* loader::GameVersion = "402862";
+
 
 void InitCodeInjections()
 {
 
-	if (strcmp((const char*)BuildNumberOffset, BuildNumberCheck) != 0)
+	if (strcmp((const char*)BuildNumberOffset, GameVersion) != 0)
 	{
 		LOG(ERR) << "Build Number check failed.";
 		LOG(ERR) << "Wrong Version of MHW detected";
@@ -70,11 +72,6 @@ void Initialize()
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
 {
 
-#ifndef _DEBUG
-	min_log_level = INFO;
-#else
-	min_log_level = DEBUG;
-#endif // !_DEBUG
 	if (ul_reason_for_call == DLL_PROCESS_ATTACH)
 	{
 		DisableThreadLibraryCalls(hModule);

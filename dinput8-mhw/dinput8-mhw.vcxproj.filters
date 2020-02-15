@@ -43,13 +43,13 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="log.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="dll.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="hooks.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="loader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

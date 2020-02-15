@@ -1,5 +1,7 @@
-#include "log.h"
+#include "loader.h"
 #include "dll.h"
+
+using namespace loader;
 
 // UI Filter Function
 /*

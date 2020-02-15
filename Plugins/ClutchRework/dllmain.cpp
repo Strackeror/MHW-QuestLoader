@@ -1,9 +1,11 @@
 // dllmain.cpp : Defines the entry point for the DLL application.
 #include <Windows.h>
-#include <log.h>
+#include <loader.h>
 #include <hooks.h>
 
 #include <set>
+
+using namespace loader;
 
 // 48 89 5c 24 08 48 89 6c 24 10 48 89 74 24 18 57 48 83 ec 20 48 89 d6 48 89 cf 48 85 d2 0f 84 43 01 00 00 48 8b 49 08
 #define	TenderizePartAddress	0x14df814d0
@@ -154,6 +156,10 @@ void onLoad()
 {
 
 	LOG(INFO) << "ClutchRework Loading...";
+	if (std::string(GameVersion) != "402862") {
+		LOG(ERR) << "Wrong version";
+		return;
+	}
 
     MH_Initialize();
 

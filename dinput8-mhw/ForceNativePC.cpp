@@ -6,7 +6,8 @@
 #include <fstream>
 
 #include "dll.h"
-#include "log.h"
+#include "loader.h"
+using namespace loader;
 
 // 48 89 e0 41 55 41 57 48 81 ec 68 01 00 00
 #define FilePathCheckOffset	0x15ebec410

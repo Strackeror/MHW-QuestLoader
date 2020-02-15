@@ -1,10 +1,10 @@
 // dllmain.cpp : Defines the entry point for the DLL application.
 #include "Windows.h"
-#include "log.h"
+#include "loader.h"
 
 void onLoad()
 {
-    LOG(INFO) << "Example plugin test log";
+    loader::LOG(loader::ERR) << "Example plugin test log";
 }
 
 BOOL APIENTRY DllMain( HMODULE hModule,
