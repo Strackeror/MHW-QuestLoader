@@ -51,5 +51,4 @@ LOG& operator<<(LOG& o, const std::vector<T>& v) {
 	return o;
 }
 
-#define ASSERT(x) {if (!(x)) LOG(ERR) << __FILE__ << ":" << __LINE__ << "    Assertion failed! " << #x; }
 
