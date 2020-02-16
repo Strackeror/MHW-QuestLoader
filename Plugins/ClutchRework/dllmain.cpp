@@ -4,6 +4,7 @@
 #include <hooks.h>
 
 #include <set>
+#include <map>
 
 using namespace loader;
 
@@ -54,13 +55,15 @@ void DumpMonsterActions(void* monster)
 	}
 }
 
-char* getLastActionName(void* monster)
+const char* getLastActionName(void* monster)
 {
+	static const char* none = "NULL";
 	void* actionManager = offsetPtr(monster, 0x61c8);
 	unsigned int lastActionGroup = *(unsigned int*)offsetPtr(actionManager, 0xac);
 	unsigned int lastAction = *(unsigned int*)offsetPtr(actionManager, 0xb0);
 	void* actionGroupArray = *(void**)offsetPtr(actionManager, 0x68 + lastActionGroup * 0x10);
 	void* action = *(void**)offsetPtr(actionGroupArray, lastAction * 0x8);
+	if (action == nullptr) return none;
 	char* actionName = *(char**)offsetPtr(action, 0x20);
 
 	return actionName;
@@ -74,109 +77,80 @@ bool wordMatches(std::string actionName, const std::set<std::string>& words)
 	return false;
 }
 
-static std::set<void*> actionUsed;
-HOOKFUNC(TurnClawCheck, bool, void* monster)
-{
-	static std::set<std::string> keywords = { "TURN_L", "TURN_R", "_EXTEND" };
-	std::string action(getLastActionName(monster));
-	return wordMatches(action, keywords);
-}
 
 // rage status -> monster+0x1bddc
 // rage count -> monster+0x1bdfc
 //  (+0x10 post rajang ?)
 
-static bool allowNextTenderize = false;
+static std::map<void*, int> nextSoftenRageCount;
 
-bool CheckTenderize(void* monster, float dmg)
+void forceEnrage(void* monster)
 {
-	static std::set<std::string> keywords = { "_EXTEND" };
-	std::string actionName = getLastActionName(monster);
-	if (wordMatches(actionName, keywords)
-		&& actionUsed.find(monster) == actionUsed.end()
-		&& (int)dmg != 20) // prevent claw slap tenderizing
-	{
-		return true;
-	}
-	return false;
-}
-
-HOOKFUNC(TenderizePart, bool, void* obj, void* data, float dmg)
-{
-	void* monster = *(void**)offsetPtr(obj, 8);
-	LOG(INFO) << "TenderizePart " << getLastActionName(monster) << " " << dmg;
-	allowNextTenderize = CheckTenderize(monster, dmg);
-	if (allowNextTenderize) actionUsed.emplace(monster);
-	return originalTenderizePart(obj, data, dmg);
-}
-
-HOOKFUNC(TenderizePartMP, void, void* monster, long long* params)
-{
-	LOG(INFO) << "TenderizePartMP " << getLastActionName(monster);
-	allowNextTenderize = CheckTenderize(monster, 100);
-	if (allowNextTenderize) actionUsed.emplace(monster);
-	originalTenderizePartMP(monster, params);
-}
-
-HOOKFUNC(LoadDamageVals, void, void* dmg, void* _2, void* data)
-{
-	originalLoadDamageVals(dmg, _2, data);
-	float* tenderizer = offsetPtr<float>(data, 0x70);
-	if (*tenderizer <= 0.1) return;
-
-	void* monster = *offsetPtr<void*>(dmg, 8);
-	if (CheckTenderize(monster, *tenderizer)) *tenderizer = 100;
-	LOG(INFO) << "Tenderize Value :" << *tenderizer;
+	LOG(INFO) << "Enrage enforced";
+	float* rageBuildUp = offsetPtr<float>(monster, 0x1bdec + 0x4);
+	float* rageBuildUp2 = offsetPtr<float>(monster, 0x1bdec + 0x8);
+	float* rageTotal = offsetPtr<float>(monster, 0x1bdec + 0x28);
+	LOG(INFO) << *rageBuildUp << " " << *rageTotal;
+	*rageBuildUp += *rageTotal;
+	*rageBuildUp2 += *rageTotal;
+	LOG(INFO) << *rageBuildUp << " " << *rageTotal;
 }
 
 HOOKFUNC(AddPartTimer, void*, void* timerMgr, unsigned int index, float timerStart)
 {
 	float* duration = offsetPtr<float>(timerMgr, 0x4a0);
-	if (!allowNextTenderize)
+	*duration = 3000;
+
+	void* monster = offsetPtr<void>(timerMgr, -0x1c3f0);
+	float* rageBuildUp = offsetPtr<float>(monster, 0x1bdec + 0x4);
+	float* rageTotal = offsetPtr<float>(monster, 0x1bdec + 0x28);
+	bool enraged = *offsetPtr<bool>(monster, 0x1bdec);
+	bool rageReached = (*rageBuildUp >= *rageTotal);
+	int rageCount = *offsetPtr<int>(monster, 0x1be0c);
+
+	LOG(INFO) << "TimerMgr" << timerMgr;
+	LOG(INFO) << "Monster " << monster << " Rage status : " << enraged << " " << rageReached << " " << rageCount;
+
+	if (enraged || nextSoftenRageCount[monster] > rageCount)
 	{
-		LOG(INFO) << "AddPartTimer Denying tenderize timer";
+		LOG(INFO) << "AddPartTimer Denying tenderize timer ";
 		return nullptr;
 	}
-	LOG(INFO) << "AddPArtTimer Allowing tenderize timer";
-	*duration = 3000;
-	allowNextTenderize = false;
+	nextSoftenRageCount[monster] = rageCount + 1;
+	forceEnrage(monster);
+	LOG(INFO) << "AddPartTimer Allowing tenderize timer";
 	return originalAddPartTimer(timerMgr, index, timerStart);
 }
 
-
 HOOKFUNC(LaunchAction, bool, void* monster, int actionId)
 {
-	if (actionUsed.find(monster) != actionUsed.end())
-		actionUsed.erase(monster);
 	bool ret = originalLaunchAction(monster, actionId);
+	LOG(INFO) << "Monster " << monster << " Action " << getLastActionName(monster);
+	if (wordMatches(getLastActionName(monster), std::set<std::string>{"GRAB_CARRY"}))
+		forceEnrage(monster);
+
 	return ret;
 }
 
+
 void onLoad()
 {
-
 	LOG(INFO) << "ClutchRework Loading...";
 	if (std::string(GameVersion) != "402862") {
 		LOG(ERR) << "Wrong version";
 		return;
 	}
 
-    MH_Initialize();
+	MH_Initialize();
 
-	AddHook(TenderizePart, TenderizePartAddress);
-	AddHook(TenderizePartMP, TenderizePartMPAddress);
 	AddHook(AddPartTimer, MonsterAddPartTimerAddress);
-
-	AddHook(TurnClawCheck, TurnClawCheckAddress);
 	AddHook(LaunchAction, LaunchActionAddress);
-
-	AddHook(LoadDamageVals, 0x14df75040);
+	//AddHook(LoadDamageVals, 0x14df75040);
 
 	MH_ApplyQueued();
 
 	LOG(INFO) << "DONE !";
 }
-
 
 
 BOOL APIENTRY DllMain( HMODULE hModule,

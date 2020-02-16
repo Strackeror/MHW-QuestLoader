@@ -102,6 +102,18 @@ public:
 size_t				AddedQuestCount;
 std::vector<Quest>	AddedQuests;
 
+static bool isCQ(int id) {
+	if (id < Quest::QuestMinId) return false;
+	bool found = false;
+	for (auto q: AddedQuests)
+		if (q.file_id == id)
+		{
+			found = true;
+			break;
+		}
+	return found;
+}
+
 static void PopulateQuests() 
 {
 	if (!std::filesystem::exists("nativePC\\quest"))
@@ -143,7 +155,7 @@ HOOKFUNC(CheckQuestUnlock, bool, int id)
 
 HOOKFUNC(CheckQuestProgress, bool, int id)
 {
-	if (id >= Quest::QuestMinId)
+	if (isCQ(id))
 	{
 		LOG(INFO) << "CheckQuestProgress: " << id;
 		return true;

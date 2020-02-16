@@ -15,13 +15,14 @@ using namespace loader;
 // search for build number as string
 #define BuildNumberOffset	0x14307c298
 const char* loader::GameVersion = "402862";
-
+const char* invalidVersion = "???";
 
 void InitCodeInjections()
 {
 
 	if (strcmp((const char*)BuildNumberOffset, GameVersion) != 0)
 	{
+		GameVersion = invalidVersion;
 		LOG(ERR) << "Build Number check failed.";
 		LOG(ERR) << "Wrong Version of MHW detected";
 		LOG(ERR) << "Loader needs to be updated.";

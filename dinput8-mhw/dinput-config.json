@@ -2,6 +2,5 @@
   "logfile": false,
   "logcmd" : false,
   "outputEveryPath": false,
-  "enableQuestLoader": true,
-  "enableClutchRework": true
+  "enableQuestLoader": true
 }
