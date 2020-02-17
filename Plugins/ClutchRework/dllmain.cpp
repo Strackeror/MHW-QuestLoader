@@ -99,17 +99,10 @@ void forceEnrage(void* monster)
 HOOKFUNC(AddPartTimer, void*, void* timerMgr, unsigned int index, float timerStart)
 {
 	float* duration = offsetPtr<float>(timerMgr, 0x4a0);
-	*duration = 3000;
-
 	void* monster = offsetPtr<void>(timerMgr, -0x1c3f0);
-	float* rageBuildUp = offsetPtr<float>(monster, 0x1bdec + 0x4);
-	float* rageTotal = offsetPtr<float>(monster, 0x1bdec + 0x28);
+	*duration = *offsetPtr<float>(monster, 0x1bdec+0x14);
 	bool enraged = *offsetPtr<bool>(monster, 0x1bdec);
-	bool rageReached = (*rageBuildUp >= *rageTotal);
 	int rageCount = *offsetPtr<int>(monster, 0x1be0c);
-
-	LOG(INFO) << "TimerMgr" << timerMgr;
-	LOG(INFO) << "Monster " << monster << " Rage status : " << enraged << " " << rageReached << " " << rageCount;
 
 	if (enraged || nextSoftenRageCount[monster] > rageCount)
 	{
@@ -118,7 +111,7 @@ HOOKFUNC(AddPartTimer, void*, void* timerMgr, unsigned int index, float timerSta
 	}
 	nextSoftenRageCount[monster] = rageCount + 1;
 	forceEnrage(monster);
-	LOG(INFO) << "AddPartTimer Allowing tenderize timer";
+	LOG(INFO) << "AddPartTimer Allowing tenderize timer " << *duration;
 	return originalAddPartTimer(timerMgr, index, timerStart);
 }
 
@@ -126,8 +119,11 @@ HOOKFUNC(LaunchAction, bool, void* monster, int actionId)
 {
 	bool ret = originalLaunchAction(monster, actionId);
 	LOG(INFO) << "Monster " << monster << " Action " << getLastActionName(monster);
-	if (wordMatches(getLastActionName(monster), std::set<std::string>{"GRAB_CARRY"}))
+	if (wordMatches(getLastActionName(monster), std::set<std::string>{"GRAB_CARRY"})) {
+		int rageCount = *offsetPtr<int>(monster, 0x1be0c);
+		nextSoftenRageCount[monster] = rageCount + 1;
 		forceEnrage(monster);
+	}
 
 	return ret;
 }

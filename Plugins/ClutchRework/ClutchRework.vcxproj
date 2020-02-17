@@ -93,7 +93,6 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>$(SolutionDir)dinput8-mhw;$(SolutionDir)external\minhook\include</AdditionalIncludeDirectories>
-      <AdditionalOptions>/NODEFAULTLIBS %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
