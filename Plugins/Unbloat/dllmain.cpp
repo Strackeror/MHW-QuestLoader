@@ -63,6 +63,8 @@ std::vector<byte> eleReplaceBytes = { 0x48, 0x8B, 0xC1, 0x90, 0x90 };
 std::vector<byte> rawSearchBytes = { 0xF3, 0x42, 0x0F, 0x59, 0x04, 0x81 };
 std::vector<byte> rawReplaceBytes = { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 };
 
+std::vector<byte> awakenSearchBytes = { 0x8D, 0x04, 0x80, 0x01, 0xC0, 0x48, 0x83, 0xC4, 0x28, 0xC3 };
+std::vector<byte> awakenReplaceBytes = { 0x90, 0x90, 0x90, 0x90, 0x90 };
 
 void onLoad()
 {
@@ -70,6 +72,20 @@ void onLoad()
         LOG(ERR) << "Unbloat : eleBloat failed";
     if (!apply(rawSearchBytes, rawReplaceBytes)) 
         LOG(ERR) << "Unbloat : rawBloat failed";
+
+    auto results = scanmem(awakenSearchBytes);
+    if (results.size() == 3)
+    {
+        for (auto ptr : results)
+            memcpy(ptr, &awakenReplaceBytes[0], awakenReplaceBytes.size());
+
+    }
+    else
+    {
+        LOG(ERR) << "Unbloat : awakenBloat failed " << results.size();
+        for (auto ptr : results)
+            LOG(ERR) << ptr;
+    }
 }
 
 BOOL APIENTRY DllMain( HMODULE hModule,
