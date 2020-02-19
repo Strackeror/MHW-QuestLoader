@@ -71,9 +71,6 @@ using namespace loader;
 
 class Quest {
 public:
-	static const int QuestMinId = 90000;
-	static std::vector<Quest> Quests;
-	static int size;
 
 
 	
@@ -99,20 +96,9 @@ public:
 	}
 };
 
+static const int	QuestMinId = 90000;
 size_t				AddedQuestCount;
 std::vector<Quest>	AddedQuests;
-
-static bool isCQ(int id) {
-	if (id < Quest::QuestMinId) return false;
-	bool found = false;
-	for (auto q: AddedQuests)
-		if (q.file_id == id)
-		{
-			found = true;
-			break;
-		}
-	return found;
-}
 
 static void PopulateQuests() 
 {
@@ -133,35 +119,36 @@ static void PopulateQuests()
 	AddedQuestCount = AddedQuests.size();
 }
 
-HOOKFUNC(CheckQuestComplete, bool, void* this_ptr, int id)
+HOOKFUNC(CheckQuestComplete, bool, void* save, int id)
 {
-	if (id >= Quest::QuestMinId)
+	if (id >= QuestMinId)
 	{
 		LOG(INFO) << "CheckQuestComplete : " << id;
 		return true;
 	}
-	return originalCheckQuestComplete(this_ptr, id);
+	return originalCheckQuestComplete(save, id);
 }
 
-HOOKFUNC(CheckQuestUnlock, bool, int id)
+HOOKFUNC(CheckQuestProgress, bool, void* save, int id)
 {
-	if (id >= Quest::QuestMinId)
-	{
-		LOG(INFO) << "CheckQuestUnlock : " << id;
-		return true;
-	}
-	return originalCheckQuestUnlock(id);
-}
-
-HOOKFUNC(CheckQuestProgress, bool, int id)
-{
-	if (isCQ(id))
+	if (id >= QuestMinId)
 	{
 		LOG(INFO) << "CheckQuestProgress: " << id;
 		return true;
 	}
-	return originalCheckQuestProgress(id);
+	return originalCheckQuestProgress(save, id);
 }
+
+HOOKFUNC(CheckQuestFlag, bool, int id)
+{
+	if (id >= QuestMinId)
+	{
+		LOG(INFO) << "CheckQuestFlag : " << id;
+		return true;
+	}
+	return originalCheckQuestFlag(id);
+}
+
 
 HOOKFUNC(QuestCount, int, void)
 {
@@ -182,7 +169,7 @@ HOOKFUNC(QuestFromIndex, int, void* this_ptr, int index)
 HOOKFUNC(CheckStarAndCategory, bool, int questID, int category, int starCount)
 {
 	auto ret = originalCheckStarAndCategory(questID, category, starCount);
-	if (questID >= Quest::QuestMinId && category == 1 && starCount == 16)
+	if (questID >= QuestMinId && category == 1 && starCount == 16)
 	{
 		LOG(INFO) << "CheckStarCategory " << questID;
 		return true;
@@ -193,7 +180,7 @@ HOOKFUNC(CheckStarAndCategory, bool, int questID, int category, int starCount)
 HOOKFUNC(GetQuestCategory, long long, int questID, int unkn)
 {
 	auto ret = originalGetQuestCategory(questID, unkn);
-	if (questID >= Quest::QuestMinId) {
+	if (questID >= QuestMinId) {
 		LOG(DEBUG) << "GetQuestCategory " << questID;
 		return 1;
 	}
@@ -262,7 +249,7 @@ void InjectQuestLoader()
 	AddHook(QuestCount, QuestCountAddress);
 	AddHook(QuestFromIndex, QuestNoFromIndexAddress);
 
-	AddHook(CheckQuestUnlock, QuestCheckFlagAddress);
+	AddHook(CheckQuestFlag, QuestCheckFlagAddress);
 	AddHook(CheckQuestComplete, QuestCheckCompleteAddress);
 	AddHook(CheckQuestProgress, QuestCheckProgressAddress);
 

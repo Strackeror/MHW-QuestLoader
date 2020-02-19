@@ -19,15 +19,8 @@ const char* invalidVersion = "???";
 
 void InitCodeInjections()
 {
-
-	if (strcmp((const char*)BuildNumberOffset, GameVersion) != 0)
-	{
-		GameVersion = invalidVersion;
-		LOG(ERR) << "Build Number check failed.";
-		LOG(ERR) << "Wrong Version of MHW detected";
-		LOG(ERR) << "Loader needs to be updated.";
+	if (std::string(loader::GameVersion) == invalidVersion)
 		return;
-	}
 
 	MH_Initialize();
 
@@ -64,6 +57,14 @@ void Initialize()
 	strcat_s(syspath, "\\dinput8.dll");
 	HMODULE hMod = LoadLibrary(syspath);
 	oDirectInput8Create = (tDirectInput8Create)GetProcAddress(hMod, "DirectInput8Create");
+
+	if (strcmp((const char*)BuildNumberOffset, GameVersion) != 0)
+	{
+		GameVersion = invalidVersion;
+		LOG(ERR) << "Build Number check failed.";
+		LOG(ERR) << "Wrong Version of MHW detected";
+		LOG(ERR) << "Loader needs to be updated.";
+	}
 
 	LoadConfig();
 	LoadAllPluginDlls(); 
