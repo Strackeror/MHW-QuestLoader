@@ -13,8 +13,8 @@
 using namespace loader;
 
 // search for build number as string
-#define BuildNumberOffset	0x14307c298
-const char* loader::GameVersion = "402862";
+#define BuildNumberOffset	0x14307F2B8
+const char* loader::GameVersion = "404549";
 const char* invalidVersion = "???";
 
 void InitCodeInjections()

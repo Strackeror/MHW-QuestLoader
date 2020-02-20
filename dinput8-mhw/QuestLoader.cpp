@@ -23,50 +23,50 @@ using namespace loader;
 				iVar8 = Quest:CheckUnlock((ulonglong)uVar1);
 */
 // 44 89 44 24 18 41 54 41 57 48 83 ec 58 41 89 d4 49 89 cf 83 fa 02
-#define UIFilterCheckAddress			0x159d14560
+#define UIFilterCheckAddress			0x14B172A30
 // Call at +0x1BB
-#define QuestCheckCompleteAddress		0x15a498c50
+#define QuestCheckCompleteAddress		0x14B816D90
 // Call at +0x1D1
-#define	QuestStarCategoryAddress		0x159601780
+#define	QuestStarCategoryAddress		0x14AA42E50
 // Call at +0x1DC
-#define QuestCheckFlagAddress			0x15cdaa780
+#define QuestCheckFlagAddress			0x1542B84C0
 
 // 48 8d 8f e0 53 10 00 48 8b 5c 24 30 48 83 c4 20 5f
 // SUBSTRACT 0x60
 // Looks the same as QuestCheckComplete, but offset is 153e0
-#define QuestCheckProgressAddress		0x15a498e90
+#define QuestCheckProgressAddress		0x14B8172B0
 
 // First function call in QuestCheckComplete
-#define QuestCategoryAddress			0x15cda8b40		
+#define QuestCategoryAddress			0x1542B6870	
 
 
 // ff c0 48 8d 49 04 83 39 ff 75 f5 c3
 // SUBSTRACT 0x10
-#define QuestCountAddress				0x15a4b5c80
+#define QuestCountAddress				0x151CE99B0
 
 // 48 63 c2 ?????????????? 8b 04 81 c3
-#define QuestNoFromIndexAddress			0x15a4b5bc0	
+#define QuestNoFromIndexAddress			0x151CE9920	
 
 // 48 83 ec 30 80 b9 7b 80 20 00 00
 // SUBSTRACT 0x1A
-#define LoadObjFromFileAddress			0x15ed7d490
+#define LoadObjFromFileAddress			0x156246510
 
 
 
 // 48 8b 56 18 48 89 c1 4c 8b 00 41 ff 50 68 48 8b 5c 24 30 89 6e 0c 48 8b 6c 24 38 48 89 7e 18 48 8b 74 24 40 48 83 c4 20 5f c3
 // SUBSTRACT 0x6E
-#define ListIncreaseCapacityOffset		0x14dcd6b40
+#define ListIncreaseCapacityOffset		0x1469E3690
 
 // Search for string 'rQuestData'
 // Follow pointer 0x58 bytes before that string
 // Address loaded in RCX at 0xA bytes in function pointed
 // (First parameter of first function call)
-#define QuestDataObjDefAddress			0x144dec0a8
+#define QuestDataObjDefAddress			0x144DEF0A8
 
 // Search for string 'rQuestNoList'
 // Follow pointer 0x18 bytes before that string
 // Address loaded in RCX at 0xA bytes in function pointed
-#define QuestNoListObjDefAddress		0x144aa4d10
+#define QuestNoListObjDefAddress		0x144AA7D10
 
 
 class Quest {

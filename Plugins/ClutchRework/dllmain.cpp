@@ -9,23 +9,25 @@
 using namespace loader;
 
 // 48 89 5c 24 08 48 89 6c 24 10 48 89 74 24 18 57 48 83 ec 20 48 89 d6 48 89 cf 48 85 d2 0f 84 43 01 00 00 48 8b 49 08
-#define	TenderizePartAddress	0x14df814d0
+#define	TenderizePartAddress	0x146C32000
 
 //48 81 c1 f0 c3 01 00 45 31 c0
-#define TenderizePartMPAddress  0x15dce4170
+#define TenderizePartMPAddress  0x154F0D0C0
 
 // 40 53 48 83 ec 20 48 8b 81 70 76 00 00 0f 57 c0 48 89 cb 0f 2f 40 64 73 59 8b 81 20 ea 01 00
-#define TurnClawCheckAddress	0x15dcc6740
+#define TurnClawCheckAddress	0x154ED4E10
 
+// Not sure where this is yet, will get back to it later.
 #define MonsterAddPartTimerAddress 0x1578993d0
 
 // 84 c0 74 1e 48 8b 8b e0 89 00 00 48 8d 54 24 38 41 b8 01 00 00 00 48 8b 89 30 01 00 00
 // Substract 0x18
-#define LaunchActionAddress		0x15dce8110
+#define LaunchActionAddress		0x154F10E30
 
 
 //40 55 57 41 56 48 8d ac 24 50 ff ff ff 48 81 ec b0 01 00 00 48 89 cf 49 89 d6 48 8b 49 08 48 85 c9
 // Attack Apply		
+// 146C2A750
 
 template<typename T>
 inline T* offsetPtr(void* ptr, int offset) { return (T*)(((char*)ptr) + offset); }
