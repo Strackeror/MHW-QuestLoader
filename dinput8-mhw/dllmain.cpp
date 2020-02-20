@@ -4,24 +4,23 @@
 #include <winternl.h>
 #include <TlHelp32.h>
 
+#include <filesystem>
+
 #include "MinHook.h"
-#include "log.h"
+#include "loader.h"
 #include "dll.h"
 
-// 48 89 5c 24 08 48 89 74 24 10 57 b8 80 2f 01 00
-// Get address loaded at +0x4f bytes
-#define BuildNumberOffset	0x142f93068
-#define BuildNumberCheck	"401727"
+using namespace loader;
+
+// search for build number as string
+#define BuildNumberOffset	0x14307c298
+const char* loader::GameVersion = "402862";
+const char* invalidVersion = "???";
 
 void InitCodeInjections()
 {
-
-	if (strcmp((const char*)BuildNumberOffset, BuildNumberCheck) != 0)
-	{
-		LOG(ERR) << "Build Number check failed.";
-		LOG(ERR) << "Wrong Version of MHW detected";
-		LOG(ERR) << "Loader needs to be updated.";
-	}
+	if (std::string(loader::GameVersion) == invalidVersion)
+		return;
 
 	MH_Initialize();
 
@@ -30,6 +29,22 @@ void InitCodeInjections()
 	InjectQuestLoader();
 
 	MH_ApplyQueued();
+}
+
+void LoadAllPluginDlls()
+{
+	if (!std::filesystem::exists("nativePC\\plugins"))
+		return;
+	for (auto& entry : std::filesystem::directory_iterator("nativePC\\plugins"))
+	{
+		std::string name = entry.path().filename().string();
+		if (entry.path().filename().extension().string() != ".dll") continue;
+		LOG(INFO) << "Loading plugin " << entry.path();
+		auto dll = LoadLibrary(entry.path().string().c_str());
+		if (!dll)
+			LOG(ERR) << "Failed to load " << entry.path();
+
+	}
 }
 
 typedef HRESULT(WINAPI* tDirectInput8Create)(HINSTANCE inst_handle, DWORD version, const IID& r_iid, LPVOID* out_wrapper, LPUNKNOWN p_unk);
@@ -43,18 +58,22 @@ void Initialize()
 	HMODULE hMod = LoadLibrary(syspath);
 	oDirectInput8Create = (tDirectInput8Create)GetProcAddress(hMod, "DirectInput8Create");
 
+	if (strcmp((const char*)BuildNumberOffset, GameVersion) != 0)
+	{
+		GameVersion = invalidVersion;
+		LOG(ERR) << "Build Number check failed.";
+		LOG(ERR) << "Wrong Version of MHW detected";
+		LOG(ERR) << "Loader needs to be updated.";
+	}
+
 	LoadConfig();
+	LoadAllPluginDlls(); 
 	InitCodeInjections();
 }
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
 {
 
-#ifndef _DEBUG
-	min_log_level = INFO;
-#else
-	min_log_level = DEBUG;
-#endif // !_DEBUG
 	if (ul_reason_for_call == DLL_PROCESS_ATTACH)
 	{
 		DisableThreadLibraryCalls(hModule);

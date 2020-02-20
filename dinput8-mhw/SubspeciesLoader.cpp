@@ -1,12 +1,13 @@
 #include "dll.h"
-#include "log.h"
+#include "loader.h"
 
+using namespace loader;
 
 // 40 56 57 41 57 48 81 ec c0 00 00 00 8b 91 68 01 00 00
-#define SpawnMonsterOffset		0x14e42c110
+#define SpawnMonsterOffset		0x15d3835f0
 
 // 44 89 44 24 18 89 54 24 10 48 89 4c 24 08 55 53 56 57 41 54 41 55 41 56 41 57 48 8d 6c 24 e1 48 81 ec a8 00 00 00 48 89 cb
-#define ConstructMonsterOffset	0x14ec62f90 
+#define ConstructMonsterOffset	0x15dc7ac60 
 
 //
 // Custom subspecies path
@@ -22,7 +23,6 @@ HOOKFUNC(SpawnMonster, void, void* this_ptr, void* unkn, void* ptr, char flag)
 	else
 		next_id = subspecies_override;
 
-	LOG(DEBUG) << "Creating Monster : " << monster_id << "-" << subspecies_override;
 	return originalSpawnMonster(this_ptr, unkn, ptr, flag);
 }
 
@@ -33,6 +33,7 @@ HOOKFUNC(ConstructMonster, void*, void* this_ptr, unsigned int monster_id, unsig
 		variant = next_id;
 		next_id = 0;
 	}
+	LOG(INFO) << "Creating Monster : " << monster_id << "-" << variant << " @0x" << this_ptr;
 	return originalConstructMonster(this_ptr, monster_id, variant);
 }
 

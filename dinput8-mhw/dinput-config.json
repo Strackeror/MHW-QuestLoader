@@ -2,5 +2,5 @@
   "logfile": false,
   "logcmd" : false,
   "outputEveryPath": false,
-  "disableQuestLoader": false
+  "enableQuestLoader": true
 }

@@ -6,13 +6,14 @@
 #include <fstream>
 
 #include "dll.h"
-#include "log.h"
+#include "loader.h"
+using namespace loader;
 
 // 48 89 e0 41 55 41 57 48 81 ec 68 01 00 00
-#define FilePathCheckOffset	0x14faca750
+#define FilePathCheckOffset	0x15ebec410
 
 // 74 44 45 31 c0 48 8d 93 f8 62 21 00 48 8b 02 48 85 c0 74 23 48 8b 4d 08 48 39 48 08 74 28
-#define NativePCCheckOffset 0x14fc1d9a8
+#define NativePCCheckOffset 0x15ed87808
 
 std::map<std::string, std::string> nativePCList;
 bool outputEveryPath = false;
