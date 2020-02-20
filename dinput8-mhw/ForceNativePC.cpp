@@ -5,6 +5,7 @@
 #include <nlohmann/json.hpp>
 #include <fstream>
 
+#include "ghidra_export.h"
 #include "dll.h"
 #include "loader.h"
 using namespace loader;
@@ -33,10 +34,10 @@ void InjectForceNativePC()
 
 	// Setting jz to jmp
 	unsigned char buf[] = { 0xEB };
-	memcpy((void*)NativePCCheckOffset, buf, 1);
+	memcpy((char*)MH::File::NativePCCheck + 0x68, buf, 1);
 
 	if (outputEveryPath)
 	{
-		AddHook(FilePathCheck, FilePathCheckOffset);
+		AddHook(FilePathCheck, MH::File::FilePathCheck);
 	}
 }

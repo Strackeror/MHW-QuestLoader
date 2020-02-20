@@ -9,12 +9,11 @@
 #include "MinHook.h"
 #include "loader.h"
 #include "dll.h"
+#include "ghidra_export.h"
 
 using namespace loader;
 
-// search for build number as string
-#define BuildNumberOffset	0x14307c298
-const char* loader::GameVersion = "402862";
+const char* loader::GameVersion = "404549";
 const char* invalidVersion = "???";
 
 void InitCodeInjections()
@@ -58,7 +57,8 @@ void Initialize()
 	HMODULE hMod = LoadLibrary(syspath);
 	oDirectInput8Create = (tDirectInput8Create)GetProcAddress(hMod, "DirectInput8Create");
 
-	if (strcmp((const char*)BuildNumberOffset, GameVersion) != 0)
+	LoadConfig();
+	if (memcmp((const char*)MH::GameVersion, loader::GameVersion, 6) != 0)
 	{
 		GameVersion = invalidVersion;
 		LOG(ERR) << "Build Number check failed.";
@@ -66,7 +66,6 @@ void Initialize()
 		LOG(ERR) << "Loader needs to be updated.";
 	}
 
-	LoadConfig();
 	LoadAllPluginDlls(); 
 	InitCodeInjections();
 }

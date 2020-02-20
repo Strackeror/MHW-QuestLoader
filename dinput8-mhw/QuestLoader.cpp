@@ -1,73 +1,8 @@
 #include "loader.h"
 #include "dll.h"
+#include "ghidra_export.h"
 
 using namespace loader;
-
-// UI Filter Function
-/*
-	  if (0 < iVar5) {
-		puVar20 = (uint *)(param_1 + 0x3f70);
-		do {
-		  uStack112 = 0x15375157e;
-		  lVar14 = List:GetIndex(_QuestManager,(ulonglong)uVar3);
-		  if ((lVar14 != 0) && (uVar1 = *(uint *)(lVar14 + 8), uVar1 != 0)) {
-			uStack112 = 0x153751596;
-			uVar12 = Quest:GetQuestManager?(_DAT_144d34720);
-			uStack112 = 0x1537515a0;
-			uVar12 = Quest:CheckComplete(uVar12,(ulonglong)uVar1);
-			if ((char)uVar12 == '\0') {
-			  uStack112 = 0x1537515b6;
-			  cVar2 = Quest:CheckStarAndCategory((ulonglong)uVar1,local_res8,(ulonglong)param_3);
-			  if (cVar2 != '\0') {
-				uStack112 = 0x1537515c1;
-				iVar8 = Quest:CheckUnlock((ulonglong)uVar1);
-*/
-// 44 89 44 24 18 41 54 41 57 48 83 ec 58 41 89 d4 49 89 cf 83 fa 02
-#define UIFilterCheckAddress			0x159d14560
-// Call at +0x1BB
-#define QuestCheckCompleteAddress		0x15a498c50
-// Call at +0x1D1
-#define	QuestStarCategoryAddress		0x159601780
-// Call at +0x1DC
-#define QuestCheckFlagAddress			0x15cdaa780
-
-// 48 8d 8f e0 53 10 00 48 8b 5c 24 30 48 83 c4 20 5f
-// SUBSTRACT 0x60
-// Looks the same as QuestCheckComplete, but offset is 153e0
-#define QuestCheckProgressAddress		0x15a498e90
-
-// First function call in QuestCheckComplete
-#define QuestCategoryAddress			0x15cda8b40		
-
-
-// ff c0 48 8d 49 04 83 39 ff 75 f5 c3
-// SUBSTRACT 0x10
-#define QuestCountAddress				0x15a4b5c80
-
-// 48 63 c2 ?????????????? 8b 04 81 c3
-#define QuestNoFromIndexAddress			0x15a4b5bc0	
-
-// 48 83 ec 30 80 b9 7b 80 20 00 00
-// SUBSTRACT 0x1A
-#define LoadObjFromFileAddress			0x15ed7d490
-
-
-
-// 48 8b 56 18 48 89 c1 4c 8b 00 41 ff 50 68 48 8b 5c 24 30 89 6e 0c 48 8b 6c 24 38 48 89 7e 18 48 8b 74 24 40 48 83 c4 20 5f c3
-// SUBSTRACT 0x6E
-#define ListIncreaseCapacityOffset		0x14dcd6b40
-
-// Search for string 'rQuestData'
-// Follow pointer 0x58 bytes before that string
-// Address loaded in RCX at 0xA bytes in function pointed
-// (First parameter of first function call)
-#define QuestDataObjDefAddress			0x144dec0a8
-
-// Search for string 'rQuestNoList'
-// Follow pointer 0x18 bytes before that string
-// Address loaded in RCX at 0xA bytes in function pointed
-#define QuestNoListObjDefAddress		0x144aa4d10
-
 
 class Quest {
 public:
@@ -118,6 +53,7 @@ static void PopulateQuests()
 	}
 	AddedQuestCount = AddedQuests.size();
 }
+
 
 HOOKFUNC(CheckQuestComplete, bool, void* save, int id)
 {
@@ -199,8 +135,6 @@ void ModifyQuestData(void* obj, char* file)
 	}
 }
 
-void (*IncreaseListCapacity)(void* list, unsigned int nsize) = 
-	(void (*)(void*, unsigned int)) ListIncreaseCapacityOffset;
 
 void ModifyQuestNoList(void* obj, char* file)
 {
@@ -210,7 +144,7 @@ void ModifyQuestNoList(void* obj, char* file)
 
 	LOG(INFO) << "Overriding questNoList. " << *questCount << " initial entries.";
 
-	IncreaseListCapacity((char*)obj + 0xb0, *capacity + AddedQuestCount);
+	MH::List_IncreaseCapacity((char*)obj + 0xb0, *capacity + AddedQuestCount);
 
 	for (int i = 0; i < (int) AddedQuestCount; ++i)
 	{
@@ -226,15 +160,10 @@ HOOKFUNC(LoadObjFile, void*, void* fileMgr, void* objDef, char* filename, int fl
 
 	if (flag == 1)
 	{
-		switch ((long long)objDef)
-		{
-		case QuestDataObjDefAddress:
+		if (objDef == MH::Quest::QuestData::ResourcePtr)
 			ModifyQuestData(object, filename);
-			break;
-		case QuestNoListObjDefAddress:
+		if (objDef == MH::Quest::QuestNoList::ResourcePtr)
 			ModifyQuestNoList(object, filename);
-			break;
-		}
 	}
 	return object;
 }
@@ -246,16 +175,16 @@ void InjectQuestLoader()
 	LOG(WARN) << "Hooking Quest Loader";
 	PopulateQuests();
 
-	AddHook(QuestCount, QuestCountAddress);
-	AddHook(QuestFromIndex, QuestNoFromIndexAddress);
+	AddHook(QuestCount, MH::Quest_Count);
+	AddHook(QuestFromIndex, MH::Quest_AtIndex);
 
-	AddHook(CheckQuestFlag, QuestCheckFlagAddress);
-	AddHook(CheckQuestComplete, QuestCheckCompleteAddress);
-	AddHook(CheckQuestProgress, QuestCheckProgressAddress);
+	AddHook(CheckQuestFlag, MH::Quest_CheckFlag);
+	AddHook(CheckQuestComplete, MH::Quest_CheckComplete);
+	AddHook(CheckQuestProgress, MH::Quest_CheckProgress);
 
-	AddHook(GetQuestCategory, QuestCategoryAddress);
-	AddHook(CheckStarAndCategory, QuestStarCategoryAddress);
+	AddHook(GetQuestCategory, MH::Quest_Category);
+	AddHook(CheckStarAndCategory, MH::Quest_StarCategoryCheck);
 
-	AddHook(LoadObjFile, LoadObjFromFileAddress);
+	AddHook(LoadObjFile, MH::File::LoadResource);
 }
 
