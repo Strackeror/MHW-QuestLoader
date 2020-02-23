@@ -102,6 +102,7 @@ HOOKFUNC(AddPartTimer, void*, void* timerMgr, unsigned int index, float timerSta
 
 	if (enraged || data[monster].nextSoften > rageCount)
 	{
+		showMessage("Wound resisted.");
 		LOG(INFO) << "AddPartTimer Denying tenderize timer ";
 		return nullptr;
 	}
@@ -109,7 +110,7 @@ HOOKFUNC(AddPartTimer, void*, void* timerMgr, unsigned int index, float timerSta
 	forceEnrage(monster);
 	auto ret = originalAddPartTimer(timerMgr, index, timerStart);
 	*offsetPtr<float>(ret, 0xc) = 300;
-	LOG(INFO) << "AddPartTimer Allowing tenderize timer " << 300;
+	LOG(INFO) << "AddPartTimer Allowing tenderize timer";
 	return ret;
 }
 
@@ -126,13 +127,12 @@ HOOKFUNC(LaunchAction, bool, void* monster, int actionId)
 	return ret;
 }
 
-
 void onLoad()
 {
 	LOG(INFO) << "ClutchRework Loading...";
 	LOG(INFO) << GameVersion;
 	if (std::string(GameVersion) != "404549") {
-		LOG(ERR) << "Wrong version";
+		LOG(ERR) << "ClutchRework: Wrong version";
 		return;
 	}
 

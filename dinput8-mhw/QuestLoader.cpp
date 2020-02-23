@@ -144,7 +144,7 @@ void ModifyQuestNoList(void* obj, char* file)
 
 	LOG(INFO) << "Overriding questNoList. " << *questCount << " initial entries.";
 
-	MH::List_IncreaseCapacity((char*)obj + 0xb0, *capacity + AddedQuestCount);
+	MH::List::IncreaseCapacity((char*)obj + 0xb0, *capacity + AddedQuestCount);
 
 	for (int i = 0; i < (int) AddedQuestCount; ++i)
 	{
