@@ -5,7 +5,7 @@
 using namespace loader;
 
 static int next_id = 0;
-HOOKFUNC(SpawnMonster, void, void* this_ptr, void* unkn, void* ptr, char flag)
+CreateHook(MH::EmSetter::CreateMonster, SpawnMonster, void, void* this_ptr, void* unkn, void* ptr, char flag)
 {
 	int monster_id = *(int*)((char*)this_ptr + 0x168);
 	unsigned int subspecies_override = *(int*)((char*)this_ptr + 0x11c);
@@ -17,7 +17,7 @@ HOOKFUNC(SpawnMonster, void, void* this_ptr, void* unkn, void* ptr, char flag)
 	return originalSpawnMonster(this_ptr, unkn, ptr, flag);
 }
 
-HOOKFUNC(ConstructMonster, void*, void* this_ptr, unsigned int monster_id, unsigned int variant)
+CreateHook(MH::Monster::ctor, ConstructMonster, void*, void* this_ptr, unsigned int monster_id, unsigned int variant)
 {
 	if (next_id) {
 		LOG(INFO) << "Setting Subspecies : " << monster_id << ":" << next_id;
@@ -30,6 +30,6 @@ HOOKFUNC(ConstructMonster, void*, void* this_ptr, unsigned int monster_id, unsig
 
 void InjectSubspeciesLoader()
 {
-	AddHook(SpawnMonster, MH::Monster_Spawn);
-	AddHook(ConstructMonster, MH::Monster_Construct);
+	QueueHook(SpawnMonster);
+	QueueHook(ConstructMonster);
 }

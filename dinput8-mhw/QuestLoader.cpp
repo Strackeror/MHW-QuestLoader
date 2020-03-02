@@ -55,7 +55,7 @@ static void PopulateQuests()
 }
 
 
-HOOKFUNC(CheckQuestComplete, bool, void* save, int id)
+CreateHook(MH::Quest::CheckComplete, CheckQuestComplete, bool, void* save, int id)
 {
 	if (id >= QuestMinId)
 	{
@@ -65,7 +65,7 @@ HOOKFUNC(CheckQuestComplete, bool, void* save, int id)
 	return originalCheckQuestComplete(save, id);
 }
 
-HOOKFUNC(CheckQuestProgress, bool, void* save, int id)
+CreateHook(MH::Quest::CheckProgress, CheckQuestProgress, bool, void* save, int id)
 {
 	if (id >= QuestMinId)
 	{
@@ -75,7 +75,7 @@ HOOKFUNC(CheckQuestProgress, bool, void* save, int id)
 	return originalCheckQuestProgress(save, id);
 }
 
-HOOKFUNC(CheckQuestFlag, bool, int id)
+CreateHook(MH::Quest::UnknFilterFlag, CheckQuestFlag, bool, int id)
 {
 	if (id >= QuestMinId)
 	{
@@ -86,13 +86,13 @@ HOOKFUNC(CheckQuestFlag, bool, int id)
 }
 
 
-HOOKFUNC(QuestCount, int, void)
+CreateHook(MH::Quest::OptionalCount, QuestCount, int, void)
 {
 	LOG(INFO) << "QuestCount";
 	return originalQuestCount() + (int) AddedQuestCount;
 }
 
-HOOKFUNC(QuestFromIndex, int, void* this_ptr, int index)
+CreateHook(MH::Quest::OptionalAt, QuestFromIndex, int, void* this_ptr, int index)
 {
 	if (index >= originalQuestCount())
 	{
@@ -102,7 +102,7 @@ HOOKFUNC(QuestFromIndex, int, void* this_ptr, int index)
 	return originalQuestFromIndex(this_ptr, index);
 }
 
-HOOKFUNC(CheckStarAndCategory, bool, int questID, int category, int starCount)
+CreateHook(MH::Quest::StarCategoryCheck, CheckStarAndCategory, bool, int questID, int category, int starCount)
 {
 	auto ret = originalCheckStarAndCategory(questID, category, starCount);
 	if (questID >= QuestMinId && category == 1 && starCount == 16)
@@ -113,7 +113,7 @@ HOOKFUNC(CheckStarAndCategory, bool, int questID, int category, int starCount)
 	return ret;
 }
 
-HOOKFUNC(GetQuestCategory, long long, int questID, int unkn)
+CreateHook(MH::Quest::GetCategory, GetQuestCategory, long long, int questID, int unkn)
 {
 	auto ret = originalGetQuestCategory(questID, unkn);
 	if (questID >= QuestMinId) {
@@ -154,7 +154,7 @@ void ModifyQuestNoList(void* obj, char* file)
 	*questCount += (int) AddedQuestCount;
 }
 
-HOOKFUNC(LoadObjFile, void*, void* fileMgr, void* objDef, char* filename, int flag)
+CreateHook(MH::File::LoadResource, LoadObjFile, void*, void* fileMgr, void* objDef, char* filename, int flag)
 {
 	void* object = originalLoadObjFile(fileMgr, objDef, filename, flag);
 
@@ -175,16 +175,16 @@ void InjectQuestLoader()
 	LOG(WARN) << "Hooking Quest Loader";
 	PopulateQuests();
 
-	AddHook(QuestCount, MH::Quest_Count);
-	AddHook(QuestFromIndex, MH::Quest_AtIndex);
+	QueueHook(QuestCount);
+	QueueHook(QuestFromIndex);
 
-	AddHook(CheckQuestFlag, MH::Quest_CheckFlag);
-	AddHook(CheckQuestComplete, MH::Quest_CheckComplete);
-	AddHook(CheckQuestProgress, MH::Quest_CheckProgress);
+	QueueHook(CheckQuestFlag);
+	QueueHook(CheckQuestComplete);
+	QueueHook(CheckQuestProgress);
 
-	AddHook(GetQuestCategory, MH::Quest_Category);
-	AddHook(CheckStarAndCategory, MH::Quest_StarCategoryCheck);
+	QueueHook(GetQuestCategory);
+	QueueHook(CheckStarAndCategory);
 
-	AddHook(LoadObjFile, MH::File::LoadResource);
+	QueueHook(LoadObjFile);
 }
 

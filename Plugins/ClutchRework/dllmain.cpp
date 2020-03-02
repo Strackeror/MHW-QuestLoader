@@ -1,129 +1,64 @@
 // dllmain.cpp : Defines the entry point for the DLL application.
 #include <Windows.h>
 #include <loader.h>
-#include <hooks.h>
+
 #include "ghidra_export.h"
+#include "util.h"
 
 #include <set>
 #include <map>
 
 using namespace loader;
-
-template<typename T>
-inline T* offsetPtr(void* ptr, int offset) { return (T*)(((char*)ptr) + offset); }
-
 static void* offsetPtr(void* ptr, int offset) { return offsetPtr<void>(ptr, offset); }
-
-void DumpMonsterActions(void* monster)
-{
-	void* actionManager = offsetPtr(monster, 0x61c8);
-	void* actionListPtr = offsetPtr(actionManager, 0x68);
-	int group = 0;
-	int sz = *offsetPtr<int>(actionListPtr, 0x8);
-	while (sz > 0)
-	{
-		LOG(INFO) << group << " " << sz;
-		void** actionList = *(void***)actionListPtr;
-		for (long long i = 1; i < sz; ++i)
-		{
-			void* action = actionList[i];
-			if (action == nullptr) continue;
-			char* actionName = *offsetPtr<char*>(action, 0x20);
-			LOG(INFO) << "Group:" << group << " ID:" << i << " Name:" << actionName;
-		}
-		group++;
-		actionListPtr = offsetPtr(actionListPtr, 0x10);
-		sz = *offsetPtr<int>(actionListPtr, 0x8);
-	}
-}
-
-
-const char*getActionName(void* monster, int actionId, int actionGroup = 1)
-{
-	static const char* none = "NULL";
-	void* actionManager = offsetPtr(monster, 0x61c8);
-	void* actionGroupArray = *(void**)offsetPtr(actionManager, 0x68 + actionGroup * 0x10);
-	void* action = *(void**)offsetPtr(actionGroupArray, actionId * 0x8);
-	if (action == nullptr) return none;
-	char* actionName = *(char**)offsetPtr(action, 0x20);
-
-	return actionName;
-}
-
-bool wordMatches(std::string actionName, const std::set<std::string>& words)
-{
-	for (auto find : words)
-		if (actionName.find(find) != -1)
-			return true;
-	return false;
-}
 
 void showMessage(std::string message) {
 	MH::Chat::ShowGameMessage(*(undefined**)MH::Chat::MainPtr, &message[0], -1, -1, 0);
 }
 
-
-// rage status -> monster+0x1bdec
-// rage count -> monster+0x1be0c
-
-
-void forceEnrage(void* monster)
-{
-	float* rageBuildUp = offsetPtr<float>(monster, 0x1bdec + 0x4);
-	if (*rageBuildUp == 0)
-		return;
-	LOG(INFO) << "Enrage enforced";
-	showMessage("Monster enraged.");
-	float* rageBuildUp2 = offsetPtr<float>(monster, 0x1bdec + 0x8);
-	float* rageTotal = offsetPtr<float>(monster, 0x1bdec + 0x28);
-	LOG(INFO) << *rageBuildUp << " " << *rageTotal;
-	*rageBuildUp += *rageTotal;
-	*rageBuildUp2 += *rageTotal;
-	LOG(INFO) << *rageBuildUp << " " << *rageTotal;
+int getReactedAction(undefined* monster, int reactionType) {
+	if (MH::Monster::HasEmDmg(monster)) {
+		undefined* emDmg = MH::Monster::GetEmDmg(monster);
+		for (int i = 0; i < MH::Monster::EmDmg::Count(emDmg); ++i) {
+			undefined* entry = MH::Monster::EmDmg::At(emDmg, i);
+			LOG(INFO) << *offsetPtr<int>(entry, 0x30);
+			if (*offsetPtr<int>(entry, 0x20) == reactionType) {
+				return *offsetPtr<int>(entry, 0x30);
+			}
+		}
+	}
+	return 0;
 }
 
 struct monsterData {
-	int nextSoften;
+	int clawExtendAction = -1;
+	int turnClawActions[2] = { -1, -1 };
 };
 
 static std::map<void*, monsterData> data;
 
-HOOKFUNC(TurnClawCheck, bool, void* monster)
+CreateHook(MH::Monster::CanClawTurn, TurnClawCheck, bool, void* monster)
 {
-	int rageCount = *offsetPtr<int>(monster, 0x1be0c);
-	return originalTurnClawCheck(monster) && (data[monster].nextSoften <= rageCount);
+	int action = *offsetPtr<int>(monster, 0x61c8 + 0xb0);
+	auto mdata = data[monster];
+	if (action == mdata.clawExtendAction
+		|| action == mdata.turnClawActions[0]
+		|| action == mdata.turnClawActions[1]) {
+		return true;
+	}
+	return false;
 }
 
-HOOKFUNC(AddPartTimer, void*, void* timerMgr, unsigned int index, float timerStart)
+CreateHook(MH::Monster::SoftenTimers::AddWoundTimer, AddPartTimer, void*, void* timerMgr, unsigned int index, float timerStart)
 {
 	void* monster = offsetPtr<void>(timerMgr, -0x1c3f0);
-	bool enraged = *offsetPtr<bool>(monster, 0x1bdec);
-	int rageCount = *offsetPtr<int>(monster, 0x1be0c);
-
-	if (enraged || data[monster].nextSoften > rageCount)
-	{
+	int action = *offsetPtr<int>(monster, 0x61c8 + 0xb0);
+	LOG(INFO) << SHOW(action);
+	if (action != data[monster].clawExtendAction) {
 		showMessage("Wound resisted.");
-		LOG(INFO) << "AddPartTimer Denying tenderize timer ";
 		return nullptr;
 	}
-	data[monster].nextSoften = rageCount + 1;
-	forceEnrage(monster);
 	auto ret = originalAddPartTimer(timerMgr, index, timerStart);
-	*offsetPtr<float>(ret, 0xc) = 300;
-	LOG(INFO) << "AddPartTimer Allowing tenderize timer";
-	return ret;
-}
-
-HOOKFUNC(LaunchAction, bool, void* monster, int actionId)
-{
-	std::string actionName(getActionName(monster, actionId));
-	if (actionName.find("GRAB") != -1 && actionName.find("HIT") != -1) {
-		int rageCount = *offsetPtr<int>(monster, 0x1be0c);
-		data[monster].nextSoften = rageCount + 1;
-		forceEnrage(monster);
-	}
-	bool ret = originalLaunchAction(monster, actionId);
-	LOG(DEBUG) << "Monster " << monster << " Action " << getActionName(monster, actionId);
+	*offsetPtr<float>(ret, 0xc) = 3000;
 	return ret;
 }
 
@@ -138,9 +73,29 @@ void onLoad()
 
 	MH_Initialize();
 
-	AddHook(AddPartTimer, MH::Monster_AddPartTimer);
-	AddHook(LaunchAction, MH::Monster_LaunchAction);
-	AddHook(TurnClawCheck, MH::Monster_CanClawTurn);
+	QueueHook(AddPartTimer);
+	QueueHook(TurnClawCheck);
+	HookLambda(MH::Monster::LaunchAction, [](auto monster, auto id)
+		{
+			auto ret = original(monster, id);
+			char* monsterName = offsetPtr<char>(monster, 0x7741);
+			if (monsterName[2] == '0' || monsterName[2] == '1') {
+				if (data[monster].clawExtendAction == -1) {
+					data[monster].clawExtendAction = getReactedAction(monster, 172);
+					LOG(INFO) << SHOW(data[monster].clawExtendAction);
+					data[monster].turnClawActions[0] = getReactedAction(monster, 164);
+					data[monster].turnClawActions[1] = getReactedAction(monster, 165);
+				}
+			}
+			return ret;
+		});
+
+	HookLambda(MH::Monster::dtor, [](auto monster)
+		{
+			data.erase(monster);
+			return original(monster);
+		});
+
 
 	MH_ApplyQueued();
 

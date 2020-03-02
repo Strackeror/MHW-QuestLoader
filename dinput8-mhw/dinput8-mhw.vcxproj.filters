@@ -46,13 +46,13 @@
     <ClInclude Include="dll.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="hooks.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="loader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ghidra_export.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

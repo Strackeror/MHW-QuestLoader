@@ -58,7 +58,7 @@ void Initialize()
 	oDirectInput8Create = (tDirectInput8Create)GetProcAddress(hMod, "DirectInput8Create");
 
 	LoadConfig();
-	if (memcmp((const char*)MH::GameVersion, loader::GameVersion, 6) != 0)
+	if (memcmp((const char*)MH::GameVersion::String, loader::GameVersion, 6) != 0)
 	{
 		GameVersion = invalidVersion;
 		LOG(ERR) << "Build Number check failed.";
