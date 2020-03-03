@@ -57,9 +57,32 @@ CreateHook(MH::Monster::SoftenTimers::AddWoundTimer, AddPartTimer, void*, void* 
 		showMessage("Wound resisted.");
 		return nullptr;
 	}
-	auto ret = originalAddPartTimer(timerMgr, index, timerStart);
+	auto ret = original(timerMgr, index, timerStart);
 	*offsetPtr<float>(ret, 0xc) = 3000;
 	return ret;
+}
+
+DeclareHook(MH::Monster::LaunchAction, LaunchAction,
+	bool, (undefined* monster, uint id))
+{
+	auto ret = original(monster, id);
+	char* monsterName = offsetPtr<char>(monster, 0x7741);
+	if (monsterName[2] == '0' || monsterName[2] == '1') {
+		if (data[monster].clawExtendAction == -1) {
+			data[monster].clawExtendAction = getReactedAction(monster, 172);
+			LOG(INFO) << SHOW(data[monster].clawExtendAction);
+			data[monster].turnClawActions[0] = getReactedAction(monster, 164);
+			data[monster].turnClawActions[1] = getReactedAction(monster, 165);
+		}
+	}
+	return ret;
+}
+
+DeclareHook(MH::Monster::dtor, CleanupMonster,
+	undefined*, (undefined* monster))
+{
+	data.erase(monster);
+	return original(monster);
 }
 
 void onLoad()
@@ -75,27 +98,9 @@ void onLoad()
 
 	QueueHook(AddPartTimer);
 	QueueHook(TurnClawCheck);
-	HookLambda(MH::Monster::LaunchAction, [](auto monster, auto id)
-		{
-			auto ret = original(monster, id);
-			char* monsterName = offsetPtr<char>(monster, 0x7741);
-			if (monsterName[2] == '0' || monsterName[2] == '1') {
-				if (data[monster].clawExtendAction == -1) {
-					data[monster].clawExtendAction = getReactedAction(monster, 172);
-					LOG(INFO) << SHOW(data[monster].clawExtendAction);
-					data[monster].turnClawActions[0] = getReactedAction(monster, 164);
-					data[monster].turnClawActions[1] = getReactedAction(monster, 165);
-				}
-			}
-			return ret;
-		});
-
-	HookLambda(MH::Monster::dtor, [](auto monster)
-		{
-			data.erase(monster);
-			return original(monster);
-		});
-
+	QueueHook(LaunchAction);
+	QueueHook(CleanupMonster);
+	HookLambda(MH::GameVersion::CalcNum, []() -> undefined8 {return 1404549; });
 
 	MH_ApplyQueued();
 

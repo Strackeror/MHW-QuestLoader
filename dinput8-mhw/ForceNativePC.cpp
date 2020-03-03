@@ -23,7 +23,7 @@ CreateHook(MH::File::FilePathCheck, FilePathCheck, void*, void* _0, const char* 
 {
 	std::string spath(path);
 	LOG(INFO) << "File loaded : " << spath;
-	return originalFilePathCheck(_0, path, _1);
+	return original(_0, path, _1);
 }
 
 void InjectForceNativePC()

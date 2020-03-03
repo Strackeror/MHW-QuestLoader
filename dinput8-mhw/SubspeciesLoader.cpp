@@ -14,7 +14,7 @@ CreateHook(MH::EmSetter::CreateMonster, SpawnMonster, void, void* this_ptr, void
 	else
 		next_id = subspecies_override;
 
-	return originalSpawnMonster(this_ptr, unkn, ptr, flag);
+	return original(this_ptr, unkn, ptr, flag);
 }
 
 CreateHook(MH::Monster::ctor, ConstructMonster, void*, void* this_ptr, unsigned int monster_id, unsigned int variant)
@@ -25,7 +25,7 @@ CreateHook(MH::Monster::ctor, ConstructMonster, void*, void* this_ptr, unsigned 
 		next_id = 0;
 	}
 	LOG(INFO) << "Creating Monster : " << monster_id << "-" << variant << " @0x" << this_ptr;
-	return originalConstructMonster(this_ptr, monster_id, variant);
+	return original(this_ptr, monster_id, variant);
 }
 
 void InjectSubspeciesLoader()
