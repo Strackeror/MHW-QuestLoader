@@ -51,10 +51,31 @@ static void PopulateQuests()
 	AddedQuestCount = AddedQuests.size();
 }
 
+bool QuestExists(int id) {
+	if (id >= QuestMinId) {
+		for (auto quest : AddedQuests) {
+			if (id == quest.file_id) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+Quest* GetQuest(int id) {
+	if (id >= QuestMinId) {
+		for (auto& quest : AddedQuests) {
+			if (id == quest.file_id) {
+				return &quest;
+			}
+		}
+	}
+	return nullptr;
+}
 
 CreateHook(MH::Quest::CheckComplete, CheckQuestComplete, bool, void* save, int id)
 {
-	if (id >= QuestMinId)
+	if (QuestExists(id))
 	{
 		LOG(INFO) << "CheckQuestComplete : " << id;
 		return true;
@@ -64,7 +85,7 @@ CreateHook(MH::Quest::CheckComplete, CheckQuestComplete, bool, void* save, int i
 
 CreateHook(MH::Quest::CheckProgress, CheckQuestProgress, bool, void* save, int id)
 {
-	if (id >= QuestMinId)
+	if (QuestExists(id))
 	{
 		LOG(INFO) << "CheckQuestProgress: " << id;
 		return true;
@@ -74,7 +95,7 @@ CreateHook(MH::Quest::CheckProgress, CheckQuestProgress, bool, void* save, int i
 
 CreateHook(MH::Quest::UnknFilterFlag, CheckQuestFlag, bool, int id)
 {
-	if (id >= QuestMinId)
+	if (QuestExists(id))
 	{
 		LOG(INFO) << "CheckQuestFlag : " << id;
 		return true;
@@ -102,10 +123,13 @@ CreateHook(MH::Quest::OptionalAt, QuestFromIndex, int, void* this_ptr, int index
 CreateHook(MH::Quest::StarCategoryCheck, CheckStarAndCategory, bool, int questID, int category, int starCount)
 {
 	auto ret = original(questID, category, starCount);
-	if (questID >= QuestMinId && category == 1 && starCount == 16)
+	Quest* found;
+	if (QuestExists(questID) && (found = GetQuest(questID)) != nullptr)
 	{
-		LOG(INFO) << "CheckStarCategory " << questID;
-		return true;
+		LOG(INFO) << "CheckStarCategory " << questID << " " SHOW(found->starcount);
+		if (found->starcount == starCount && category == 1) {
+			return true;
+		}
 	}
 	return ret;
 }
@@ -113,7 +137,7 @@ CreateHook(MH::Quest::StarCategoryCheck, CheckStarAndCategory, bool, int questID
 CreateHook(MH::Quest::GetCategory, GetQuestCategory, long long, int questID, int unkn)
 {
 	auto ret = original(questID, unkn);
-	if (questID >= QuestMinId) {
+	if (QuestExists(questID)) {
 		LOG(DEBUG) << "GetQuestCategory " << questID;
 		return 1;
 	}
@@ -127,6 +151,7 @@ void ModifyQuestData(void* obj, char* file)
 		if (quest.questPath == std::string(file))
 		{
 			LOG(INFO) << "Quest Data loaded : " << file;
+			quest.starcount = *offsetPtr<unsigned char>(obj, 0xb0 + 0x74);
 			*(int*)((char*)obj + 0xb0 + 0x70) = (int) quest.file_id;
 		}
 	}
