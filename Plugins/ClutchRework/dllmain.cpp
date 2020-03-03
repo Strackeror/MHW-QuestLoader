@@ -20,7 +20,6 @@ int getReactedAction(undefined* monster, int reactionType) {
 		undefined* emDmg = MH::Monster::GetEmDmg(monster);
 		for (int i = 0; i < MH::Monster::EmDmg::Count(emDmg); ++i) {
 			undefined* entry = MH::Monster::EmDmg::At(emDmg, i);
-			LOG(INFO) << *offsetPtr<int>(entry, 0x30);
 			if (*offsetPtr<int>(entry, 0x20) == reactionType) {
 				return *offsetPtr<int>(entry, 0x30);
 			}
@@ -32,6 +31,7 @@ int getReactedAction(undefined* monster, int reactionType) {
 struct monsterData {
 	int clawExtendAction = -1;
 	int turnClawActions[2] = { -1, -1 };
+	bool actionUsed = false;
 };
 
 static std::map<void*, monsterData> data;
@@ -57,6 +57,7 @@ CreateHook(MH::Monster::SoftenTimers::AddWoundTimer, AddPartTimer, void*, void* 
 		showMessage("Wound resisted.");
 		return nullptr;
 	}
+	data[monster].actionUsed = true;
 	auto ret = original(timerMgr, index, timerStart);
 	*offsetPtr<float>(ret, 0xc) = 3000;
 	return ret;
@@ -70,10 +71,10 @@ DeclareHook(MH::Monster::LaunchAction, LaunchAction,
 	if (monsterName[2] == '0' || monsterName[2] == '1') {
 		if (data[monster].clawExtendAction == -1) {
 			data[monster].clawExtendAction = getReactedAction(monster, 172);
-			LOG(INFO) << SHOW(data[monster].clawExtendAction);
 			data[monster].turnClawActions[0] = getReactedAction(monster, 164);
 			data[monster].turnClawActions[1] = getReactedAction(monster, 165);
 		}
+		data[monster].actionUsed = false;
 	}
 	return ret;
 }
