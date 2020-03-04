@@ -28,9 +28,10 @@ public:
 	}
 };
 
-static const int	QuestMinId = 90000;
-size_t				AddedQuestCount;
-std::vector<Quest>	AddedQuests;
+static const int QuestMinId = 90000;
+size_t AddedQuestCount;
+std::vector<Quest> AddedQuests;
+std::unordered_map<int, Quest*> QuestIds;
 
 static void PopulateQuests() 
 {
@@ -47,30 +48,18 @@ static void PopulateQuests()
 
 		LOG(WARN) << "Registered quest at " << entry.path().string();
 		AddedQuests.push_back(Quest(id));
+		QuestIds[id] = &AddedQuests.back();
 	}
 	AddedQuestCount = AddedQuests.size();
 }
 
 bool QuestExists(int id) {
-	if (id >= QuestMinId) {
-		for (auto quest : AddedQuests) {
-			if (id == quest.file_id) {
-				return true;
-			}
-		}
-	}
-	return false;
+	return QuestIds.find(id) != QuestIds.end();
 }
 
+
 Quest* GetQuest(int id) {
-	if (id >= QuestMinId) {
-		for (auto& quest : AddedQuests) {
-			if (id == quest.file_id) {
-				return &quest;
-			}
-		}
-	}
-	return nullptr;
+	return QuestIds.find(id)->second;
 }
 
 CreateHook(MH::Quest::CheckComplete, CheckQuestComplete, bool, void* save, int id)
@@ -97,7 +86,7 @@ CreateHook(MH::Quest::UnknFilterFlag, CheckQuestFlag, bool, int id)
 {
 	if (QuestExists(id))
 	{
-		LOG(INFO) << "CheckQuestFlag : " << id;
+		LOG(DEBUG) << "CheckQuestFlag : " << id;
 		return true;
 	}
 	return original(id);
@@ -106,7 +95,7 @@ CreateHook(MH::Quest::UnknFilterFlag, CheckQuestFlag, bool, int id)
 
 CreateHook(MH::Quest::OptionalCount, QuestCount, int, void)
 {
-	LOG(INFO) << "QuestCount";
+	LOG(DEBUG) << "QuestCount";
 	return original() + (int) AddedQuestCount;
 }
 
@@ -114,7 +103,7 @@ CreateHook(MH::Quest::OptionalAt, QuestFromIndex, int, void* this_ptr, int index
 {
 	if (index >= QuestCount::original())
 	{
-		LOG(INFO) << "QuestFromIndex :" << index << ":" << AddedQuests[(long long) index - QuestCount::original()].file_id;
+		LOG(INFO) << "QuestFromIndex :" << index << ":" << AddedQuests[(long long)index - QuestCount::original()].file_id;
 		return (int) AddedQuests[(long long) index - QuestCount::original()].file_id;
 	}
 	return original(this_ptr, index);
@@ -124,8 +113,9 @@ CreateHook(MH::Quest::StarCategoryCheck, CheckStarAndCategory, bool, int questID
 {
 	auto ret = original(questID, category, starCount);
 	Quest* found;
-	if (QuestExists(questID) && (found = GetQuest(questID)) != nullptr)
+	if (QuestExists(questID))
 	{
+		found = GetQuest(questID);
 		LOG(INFO) << "CheckStarCategory " << questID << " " SHOW(found->starcount);
 		if (found->starcount == starCount && category == 1) {
 			return true;

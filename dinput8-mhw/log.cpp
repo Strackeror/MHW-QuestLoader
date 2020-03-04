@@ -5,11 +5,7 @@
 
 using namespace loader;
 
-#ifndef _DEBUG
-	LogLevel loader::MinLogLevel = INFO;
-#else
-	LogLevel loader::MinLogLevel = DEBUG;
-#endif // !_DEBUG
+LogLevel loader::MinLogLevel = INFO;
 
 bool configLoaded = false;
 
@@ -32,7 +28,7 @@ void logToFile(const char* stamp, const char* msg)
 void logToConsole(int l, const char* stamp, const char* msg)
 {
 	static HANDLE console = 0;
-	if (!logcmd && l != ERR) return;
+	if (!logcmd) return;
 
 	if (!console )
 	{
@@ -56,29 +52,37 @@ void logToConsole(int l, const char* stamp, const char* msg)
 
 }
 
+static std::map<std::string, LogLevel> logLevels = {
+	{"DEBUG", DEBUG},
+	{"INFO", INFO },
+	{"WARNING", WARN},
+	{"ERROR", ERR}
+};
+
 void _log(int l, const char* s) 
 {
 	if (!configLoaded)
 	{
 		configLoaded = true;
+		loader::MinLogLevel = logLevels.at(ConfigFile.value<std::string>("logLevel", "ERROR"));
 		logcmd = ConfigFile.value<bool>("logcmd", false);
 		logfile = ConfigFile.value<bool>("logfile", false);
 	}
+	if (l < MinLogLevel)
+		return;
 
-	if (l >= MinLogLevel) {
-		time_t mytime = time(NULL);
-		tm mytm;
-		localtime_s(&mytm, &mytime);
-		char stamp[128] = { 0 };
-		strftime(stamp, sizeof(stamp), "%H:%M:%S", &mytm);
+	time_t mytime = time(NULL);
+	tm mytm;
+	localtime_s(&mytm, &mytime);
+	char stamp[128] = { 0 };
+	strftime(stamp, sizeof(stamp), "%H:%M:%S", &mytm);
 
-		logToFile(stamp, s);
-		logToConsole(l, stamp, s);
-	}
+	logToFile(stamp, s);
+	logToConsole(l, stamp, s);
 }
 
 LOG::~LOG() {
-	s_ << std::endl;
-	s_.flush();
-	_log((int)l_, s_.str().c_str());
+	stream << std::endl;
+	stream.flush();
+	_log((int)logLevel, stream.str().c_str());
 }

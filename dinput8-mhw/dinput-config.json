@@ -1,6 +1,7 @@
 {
   "logfile": false,
-  "logcmd" : false,
+  "logcmd": true,
+  "logLevel": "ERROR",
   "outputEveryPath": false,
   "enableQuestLoader": true
 }
