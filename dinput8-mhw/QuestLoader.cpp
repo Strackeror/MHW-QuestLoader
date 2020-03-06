@@ -6,7 +6,7 @@ using namespace loader;
 
 class Quest {
 public:
-	long long file_id;
+	int file_id;
 
 	struct {
 		void* vtable = nullptr;
@@ -48,7 +48,10 @@ static void PopulateQuests()
 
 		LOG(WARN) << "Registered quest at " << entry.path().string();
 		AddedQuests.push_back(Quest(id));
-		QuestIds[id] = &AddedQuests.back();
+	}
+
+	for (auto& quest : AddedQuests) {
+		QuestIds.insert({ quest.file_id, &quest });
 	}
 	AddedQuestCount = AddedQuests.size();
 }
@@ -103,8 +106,9 @@ CreateHook(MH::Quest::OptionalAt, QuestFromIndex, int, void* this_ptr, int index
 {
 	if (index >= QuestCount::original())
 	{
-		LOG(INFO) << "QuestFromIndex :" << index << ":" << AddedQuests[(long long)index - QuestCount::original()].file_id;
-		return (int) AddedQuests[(long long) index - QuestCount::original()].file_id;
+		size_t newIndex = ((size_t)index) - QuestCount::original();
+		LOG(DEBUG) << "QuestFromIndex :" << index << ":" << AddedQuests[newIndex].file_id;
+		return (int) AddedQuests[newIndex].file_id;
 	}
 	return original(this_ptr, index);
 }
@@ -116,7 +120,7 @@ CreateHook(MH::Quest::StarCategoryCheck, CheckStarAndCategory, bool, int questID
 	if (QuestExists(questID))
 	{
 		found = GetQuest(questID);
-		LOG(INFO) << "CheckStarCategory " << questID << " " SHOW(found->starcount);
+		LOG(DEBUG) << "CheckStarCategory" << SHOW(questID) << SHOW(found->starcount);
 		if (found->starcount == starCount && category == 1) {
 			return true;
 		}
@@ -140,13 +144,13 @@ void ModifyQuestData(void* obj, char* file)
 	{
 		if (quest.questPath == std::string(file))
 		{
-			LOG(INFO) << "Quest Data loaded : " << file;
-			quest.starcount = *offsetPtr<unsigned char>(obj, 0xb0 + 0x74);
 			*(int*)((char*)obj + 0xb0 + 0x70) = (int) quest.file_id;
+			quest.starcount = *offsetPtr<unsigned char>(obj, 0xb0 + 0x74);
+			LOG(INFO) << "Quest Data loaded : " << file << " " << SHOW(quest.starcount);
+
 		}
 	}
 }
-
 
 void ModifyQuestNoList(void* obj, char* file)
 {

@@ -122,6 +122,7 @@
       <ModuleDefinitionFile>dinput8.def</ModuleDefinitionFile>
       <AdditionalDependencies>$(SolutionDir)lib\$(Configuration)\libminhook.x64.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
     </Link>
     <PostBuildEvent>
       <Command>
@@ -172,6 +173,7 @@
       <ModuleDefinitionFile>dinput8.def</ModuleDefinitionFile>
       <AdditionalDependencies>$(SolutionDir)lib\$(Configuration)\libMinHook.x64.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
     </Link>
     <PostBuildEvent>
       <Command>

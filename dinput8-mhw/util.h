@@ -5,7 +5,7 @@
 template<typename T>
 inline T* offsetPtr(void* ptr, int offset) { return (T*)(((char*)ptr) + offset); }
 
-#define SHOW(VAR) "\""#VAR"\"={" << VAR << "}";
+#define SHOW(VAR) "\""#VAR"\"={" << VAR << "}"
 
 #define DeclareHook(TARGET, NAME, RET, PARAMS) \
 namespace hooks::NAME {\

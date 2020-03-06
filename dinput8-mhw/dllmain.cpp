@@ -51,23 +51,30 @@ tDirectInput8Create oDirectInput8Create = nullptr;
 
 void Initialize()
 {
-	char syspath[MAX_PATH];
-	GetSystemDirectory(syspath, MAX_PATH);
-	strcat_s(syspath, "\\dinput8.dll");
-	HMODULE hMod = LoadLibrary(syspath);
-	oDirectInput8Create = (tDirectInput8Create)GetProcAddress(hMod, "DirectInput8Create");
-
-	LoadConfig();
-	if (memcmp((const char*)MH::GameVersion::String, loader::GameVersion, 6) != 0)
+	try 
 	{
-		GameVersion = invalidVersion;
-		LOG(ERR) << "Build Number check failed.";
-		LOG(ERR) << "Wrong Version of MHW detected";
-		LOG(ERR) << "Loader needs to be updated.";
-	}
+		char syspath[MAX_PATH];
+		GetSystemDirectory(syspath, MAX_PATH);
+		strcat_s(syspath, "\\dinput8.dll");
+		HMODULE hMod = LoadLibrary(syspath);
+		oDirectInput8Create = (tDirectInput8Create)GetProcAddress(hMod, "DirectInput8Create");
 
-	LoadAllPluginDlls(); 
-	InitCodeInjections();
+		LoadConfig();
+		if (memcmp((const char*)MH::GameVersion::String, loader::GameVersion, 6) != 0)
+		{
+			GameVersion = invalidVersion;
+			LOG(ERR) << "Build Number check failed.";
+			LOG(ERR) << "Wrong Version of MHW detected";
+			LOG(ERR) << "Loader needs to be updated.";
+		}
+
+		LoadAllPluginDlls();
+		InitCodeInjections();
+	}
+	catch (std::exception e) 
+	{
+		MessageBox(0, "STRACKER'S LOADER ERROR", e.what(), MB_OK);
+	}
 }
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
