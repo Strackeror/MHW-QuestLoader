@@ -38,11 +38,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="dinput8.def">
-      <Filter>Source Files</Filter>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="dll.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -57,7 +52,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <CopyFileToFolders Include="dinput-config.json">
+    <CopyFileToFolders Include="loader-config.json">
       <Filter>Resource Files</Filter>
     </CopyFileToFolders>
   </ItemGroup>

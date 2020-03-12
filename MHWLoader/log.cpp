@@ -19,7 +19,7 @@ void logToFile(const char* stamp, const char* msg)
 	if (!logfile) return;
 
 	if (!o.is_open())
-		o = std::ofstream("dinput-loader.log");
+		o = std::ofstream("loader.log");
 
 	o << "[ " << stamp << " ] " << msg;
 	o.flush();

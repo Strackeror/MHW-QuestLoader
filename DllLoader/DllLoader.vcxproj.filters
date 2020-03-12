@@ -20,8 +20,13 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Library Include="dependencies\loader.lib">
-      <Filter>Resource Files</Filter>
-    </Library>
+    <MASM Include="asm.asm">
+      <Filter>Source Files</Filter>
+    </MASM>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="hid.def">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

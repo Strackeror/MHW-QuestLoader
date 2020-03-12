@@ -46,19 +46,11 @@ void LoadAllPluginDlls()
 	}
 }
 
-typedef HRESULT(WINAPI* tDirectInput8Create)(HINSTANCE inst_handle, DWORD version, const IID& r_iid, LPVOID* out_wrapper, LPUNKNOWN p_unk);
-tDirectInput8Create oDirectInput8Create = nullptr;
-
 void Initialize()
 {
-	try 
-	{
-		char syspath[MAX_PATH];
-		GetSystemDirectory(syspath, MAX_PATH);
-		strcat_s(syspath, "\\dinput8.dll");
-		HMODULE hMod = LoadLibrary(syspath);
-		oDirectInput8Create = (tDirectInput8Create)GetProcAddress(hMod, "DirectInput8Create");
 
+	LoadConfig();
+	try {
 		LoadConfig();
 		if (memcmp((const char*)MH::GameVersion::String, loader::GameVersion, 6) != 0)
 		{
@@ -82,13 +74,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 
 	if (ul_reason_for_call == DLL_PROCESS_ATTACH)
 	{
-		DisableThreadLibraryCalls(hModule);
 		Initialize();
 	}
 	return TRUE;
-}
-
-HRESULT WINAPI DirectInput8Create(HINSTANCE inst_handle, DWORD version, const IID& r_iid, LPVOID* out_wrapper, LPUNKNOWN p_unk)
-{
-	return oDirectInput8Create(inst_handle, version, r_iid, out_wrapper, p_unk);
 }
