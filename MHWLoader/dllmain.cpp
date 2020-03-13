@@ -13,7 +13,7 @@
 
 using namespace loader;
 
-const char* loader::GameVersion = "404549";
+const char* loader::GameVersion = "406510";
 const char* invalidVersion = "???";
 
 void InitCodeInjections()
@@ -48,8 +48,6 @@ void LoadAllPluginDlls()
 
 void Initialize()
 {
-
-	LoadConfig();
 	try {
 		LoadConfig();
 		if (memcmp((const char*)MH::GameVersion::String, loader::GameVersion, 6) != 0)
@@ -59,7 +57,6 @@ void Initialize()
 			LOG(ERR) << "Wrong Version of MHW detected";
 			LOG(ERR) << "Loader needs to be updated.";
 		}
-
 		LoadAllPluginDlls();
 		InitCodeInjections();
 	}
