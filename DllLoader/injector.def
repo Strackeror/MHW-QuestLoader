@@ -1,4 +1,3 @@
-LIBRARY hid.dll
 EXPORTS
 	HidD_FlushQueue=HidD_FlushQueue_wrapper @1
 	HidD_FreePreparsedData=HidD_FreePreparsedData_wrapper @2

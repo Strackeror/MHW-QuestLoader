@@ -12,12 +12,12 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
 			return (FALSE);
 		for (int i = 0; i < 44; i++)
 			mProcs[i] = (UINT_PTR)GetProcAddress(mHinstDLL, mImportNames[i]);
-		LoadLibrary("loader.dll");
+        ((char*)0x15e36e180)[0x68] = 0xEB;
 	}
 	else if (fdwReason == DLL_PROCESS_DETACH) {
 		FreeLibrary(mHinstDLL);
 	}
-	return (TRUE);
+	return (FALSE);
 }
 
 extern "C" void HidD_FlushQueue_wrapper();
