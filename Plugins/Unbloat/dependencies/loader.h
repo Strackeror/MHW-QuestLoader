@@ -3,7 +3,6 @@
 #include <sdkddkver.h>
 
 #include <sstream>
-#include <filesystem>
 #include <vector>
 
 #ifdef DINPUT8MHW_EXPORTS

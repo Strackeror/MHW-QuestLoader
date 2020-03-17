@@ -1,5 +1,32 @@
+
+#include <vector>
+#include <fstream>
+#include <sstream>
+#include <iterator>
+#include <iostream>
+#include <string>
+
 #include <windows.h>
 #include <stdio.h>
+
+#include "../external/MemoryModule/MemoryModule.h"
+
+void LoadLoader() 
+{
+	const char path[] = "loader.dll";
+	std::ifstream dll(path, std::ios::binary);
+	std::vector<char> dllRead(std::istreambuf_iterator<char>(dll), {});
+
+	size_t size = dllRead.size();
+	char* allocatedMem = (char*) malloc(size);
+	if (!allocatedMem)
+		return;
+	memcpy(allocatedMem, &dllRead[0], size);
+	auto target = MemoryLoadLibrary(allocatedMem, size);
+	typedef void(*initF)(void*);
+	((initF)MemoryGetProcAddress(target, "Initialize"))(target);
+}
+
 HINSTANCE mHinst = 0, mHinstDLL = 0;
 extern "C" UINT_PTR mProcs[44] = { 0 };
 
@@ -7,12 +34,13 @@ LPCSTR mImportNames[] = { "HidD_FlushQueue", "HidD_FreePreparsedData", "HidD_Get
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
 	mHinst = hinstDLL;
 	if (fdwReason == DLL_PROCESS_ATTACH) {
+		LoadLoader();
+
 		mHinstDLL = LoadLibrary("C:\\Windows\\System32\\hid.dll");
 		if (!mHinstDLL)
 			return (FALSE);
 		for (int i = 0; i < 44; i++)
 			mProcs[i] = (UINT_PTR)GetProcAddress(mHinstDLL, mImportNames[i]);
-        ((char*)0x15e36e180)[0x68] = 0xEB;
 	}
 	else if (fdwReason == DLL_PROCESS_DETACH) {
 		FreeLibrary(mHinstDLL);

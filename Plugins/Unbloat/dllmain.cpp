@@ -3,10 +3,13 @@
 #include <Psapi.h>
 
 #include <algorithm>
+#include <vector>
 
 #include "loader.h"
 
 using namespace loader;
+
+__declspec(dllexport) void load() {};
 
 typedef unsigned char byte;
 
@@ -68,11 +71,6 @@ std::vector<byte> awakenReplaceBytes = { 0x90, 0x90, 0x90, 0x90, 0x90 };
 
 void onLoad()
 {
-    if (!apply(eleSearchBytes, eleReplaceBytes)) 
-        LOG(ERR) << "Unbloat : eleBloat failed";
-    if (!apply(rawSearchBytes, rawReplaceBytes)) 
-        LOG(ERR) << "Unbloat : rawBloat failed";
-
     auto results = scanmem(awakenSearchBytes);
     if (results.size() == 3)
     {
@@ -86,6 +84,11 @@ void onLoad()
         for (auto ptr : results)
             LOG(ERR) << ptr;
     }
+
+    if (!apply(eleSearchBytes, eleReplaceBytes))
+        LOG(ERR) << "Unbloat : eleBloat failed";
+    if (!apply(rawSearchBytes, rawReplaceBytes))
+        LOG(ERR) << "Unbloat : rawBloat failed";
 }
 
 BOOL APIENTRY DllMain( HMODULE hModule,

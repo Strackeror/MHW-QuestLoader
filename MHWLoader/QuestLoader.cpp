@@ -1,3 +1,5 @@
+#include <filesystem>
+
 #include "loader.h"
 #include "dll.h"
 #include "ghidra_export.h"

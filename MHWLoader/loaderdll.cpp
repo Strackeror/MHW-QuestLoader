@@ -1,10 +1,18 @@
 // dllmain.cpp : Defines the entry point for the DLL application.
+
+#include <filesystem>
+#include <sstream>
+#include <fstream>
+#include <iterator>
+#include <vector>
+
 #include <SDKDDKVer.h>
 #include <windows.h>
 #include <winternl.h>
 #include <TlHelp32.h>
 
-#include <filesystem>
+
+#include "../external/MemoryModule/MemoryModule.h"
 
 #include "MinHook.h"
 #include "loader.h"
@@ -30,6 +38,37 @@ void InitCodeInjections()
 	MH_ApplyQueued();
 }
 
+static void* currentModule;
+
+HCUSTOMMODULE CustomLoadLibrary(const char* path, void* _) {
+	if (std::string(path) == "loader.dll") {
+		return currentModule;
+	}
+	return LoadLibraryA(path);
+}
+
+FARPROC CustomGetProcAddress(HCUSTOMMODULE target, const char* path, void* _) {
+	if (target == currentModule) {
+		return MemoryGetProcAddress(target, path);
+	}
+	return GetProcAddress((HMODULE)target, path);
+}
+
+auto LoadDll(const char* path)
+{
+	std::ifstream dll(path, std::ios::binary);
+	std::vector<char> dllRead(std::istreambuf_iterator<char>(dll), {});
+
+	size_t size = dllRead.size();
+	char* allocatedMem = (char*)malloc(size);
+	memcpy(allocatedMem, &dllRead[0], size);
+	
+	return MemoryLoadLibraryEx(allocatedMem, size, MemoryDefaultAlloc, MemoryDefaultFree, 
+		CustomLoadLibrary, CustomGetProcAddress, MemoryDefaultFreeLibrary, 
+		nullptr);
+}
+
+
 void LoadAllPluginDlls()
 {
 	if (!std::filesystem::exists("nativePC\\plugins"))
@@ -39,39 +78,37 @@ void LoadAllPluginDlls()
 		std::string name = entry.path().filename().string();
 		if (entry.path().filename().extension().string() != ".dll") continue;
 		LOG(INFO) << "Loading plugin " << entry.path();
-		auto dll = LoadLibrary(entry.path().string().c_str());
+		auto dll = LoadDll(entry.path().string().c_str());
 		if (!dll)
 			LOG(ERR) << "Failed to load " << entry.path();
 
 	}
 }
 
-void Initialize()
-{
-	try {
-		LoadConfig();
-		if (memcmp((const char*)MH::GameVersion::String, loader::GameVersion, 6) != 0)
-		{
-			GameVersion = invalidVersion;
-			LOG(ERR) << "Build Number check failed.";
-			LOG(ERR) << "Wrong Version of MHW detected";
-			LOG(ERR) << "Loader needs to be updated.";
-		}
-		LoadAllPluginDlls();
-		InitCodeInjections();
-	}
-	catch (std::exception e) 
+extern "C" {
+	__declspec(dllexport) extern void Initialize(void* memModule)
 	{
-		MessageBox(0, "STRACKER'S LOADER ERROR", e.what(), MB_OK);
+		currentModule = memModule;
+		try {
+			LoadConfig();
+			if (memcmp((const char*)MH::GameVersion::String, loader::GameVersion, 6) != 0)
+			{
+				GameVersion = invalidVersion;
+				LOG(ERR) << "Build Number check failed.";
+				LOG(ERR) << "Wrong Version of MHW detected";
+				LOG(ERR) << "Loader needs to be updated.";
+			}
+			LoadAllPluginDlls();
+			InitCodeInjections();
+		}
+		catch (std::exception e)
+		{
+			MessageBox(0, "STRACKER'S LOADER ERROR", e.what(), MB_OK);
+		}
 	}
 }
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
 {
-
-	if (ul_reason_for_call == DLL_PROCESS_ATTACH)
-	{
-		Initialize();
-	}
 	return TRUE;
 }

@@ -2,6 +2,7 @@
 #include "dll.h"
 
 #include <fstream>
+#include <ctime>
 
 using namespace loader;
 
@@ -14,12 +15,10 @@ bool logfile = false;
 
 void logToFile(const char* stamp, const char* msg)
 {
-	static std::ofstream o;
 
 	if (!logfile) return;
 
-	if (!o.is_open())
-		o = std::ofstream("loader.log");
+	std::ofstream o("loader.log", std::ios::ate);
 
 	o << "[ " << stamp << " ] " << msg;
 	o.flush();
