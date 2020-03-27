@@ -18,7 +18,7 @@ void logToFile(const char* stamp, const char* msg)
 
 	if (!logfile) return;
 
-	std::ofstream o("loader.log", std::ios::ate);
+	std::ofstream o("loader.log", std::ios::app);
 
 	o << "[ " << stamp << " ] " << msg;
 	o.flush();

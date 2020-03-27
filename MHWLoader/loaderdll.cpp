@@ -21,7 +21,7 @@
 
 using namespace loader;
 
-const char* loader::GameVersion = "406510";
+const char* loader::GameVersion = "408899";
 const char* invalidVersion = "???";
 
 void InitCodeInjections()
@@ -68,7 +68,6 @@ auto LoadDll(const char* path)
 		nullptr);
 }
 
-
 void LoadAllPluginDlls()
 {
 	if (!std::filesystem::exists("nativePC\\plugins"))
@@ -85,12 +84,21 @@ void LoadAllPluginDlls()
 	}
 }
 
+void OldWarning() {
+	if (std::filesystem::exists("hid.dll")) {
+		LOG(ERR) << "Found old hid.dll in game folder.";
+		LOG(ERR) << "This dll is not used by the mod anymore, and might cause issues.";
+		LOG(ERR) << "Please delete hid.dll from the game's folder.";
+	}
+}
+
 extern "C" {
 	__declspec(dllexport) extern void Initialize(void* memModule)
 	{
 		currentModule = memModule;
 		try {
 			LoadConfig();
+			OldWarning();
 			if (memcmp((const char*)MH::GameVersion::String, loader::GameVersion, 6) != 0)
 			{
 				GameVersion = invalidVersion;

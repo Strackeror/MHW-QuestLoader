@@ -15,16 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="asm.asm">
-      <Filter>Source Files</Filter>
-    </MASM>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="injector.def">
-      <Filter>Source Files</Filter>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="injectordll.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
