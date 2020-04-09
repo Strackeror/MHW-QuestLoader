@@ -48,7 +48,7 @@
       <PreprocessorDefinitions>NDEBUG;DINPUT8MHW_EXPORTS;_WINDOWS;_USRDLL;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)external\minhook\include;$(SolutionDir)external\json</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)external\minhook\include;$(SolutionDir)external\json;$(SolutionDir)external\MemoryModule;$(SolutionDir)external\lua</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>

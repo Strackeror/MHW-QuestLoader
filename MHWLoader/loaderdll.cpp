@@ -12,16 +12,16 @@
 #include <TlHelp32.h>
 
 
-#include "../external/MemoryModule/MemoryModule.h"
-
+#include "MemoryModule.h"
 #include "MinHook.h"
+
 #include "loader.h"
 #include "dll.h"
 #include "ghidra_export.h"
 
 using namespace loader;
 
-const char* loader::GameVersion = "408899";
+const char* loader::GameVersion = "410013";
 const char* invalidVersion = "???";
 
 void InitCodeInjections()
@@ -99,7 +99,7 @@ extern "C" {
 		try {
 			LoadConfig();
 			OldWarning();
-			if (memcmp((const char*)MH::GameVersion::String, loader::GameVersion, 6) != 0)
+			if (memcmp(*(const char**)MH::GameVersion::StringPtr, loader::GameVersion, 6) != 0)
 			{
 				GameVersion = invalidVersion;
 				LOG(ERR) << "Build Number check failed.";
