@@ -21,7 +21,7 @@
 
 using namespace loader;
 
-const char* loader::GameVersion = "410013";
+const char* loader::GameVersion = "410014";
 const char* invalidVersion = "???";
 
 void InitCodeInjections()
@@ -70,6 +70,7 @@ auto LoadDll(const char* path)
 
 void LoadAllPluginDlls()
 {
+	if (!ConfigFile.value("enablePluginLoader", true)) return;
 	if (!std::filesystem::exists("nativePC\\plugins"))
 		return;
 	for (auto& entry : std::filesystem::directory_iterator("nativePC\\plugins"))

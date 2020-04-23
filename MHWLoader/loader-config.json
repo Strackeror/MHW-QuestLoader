@@ -3,5 +3,7 @@
   "logcmd": true,
   "logLevel": "ERROR",
   "outputEveryPath": false,
-  "enableQuestLoader": true
+  "enableQuestLoader": true,
+  "enableSubspeciesLoader": true,
+  "enablePluginLoader": true
 }
