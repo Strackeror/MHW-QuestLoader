@@ -21,7 +21,7 @@
 
 using namespace loader;
 
-const char* loader::GameVersion = "410014";
+const char* loader::GameVersion = "410918";
 const char* invalidVersion = "???";
 
 void InitCodeInjections()
@@ -100,7 +100,7 @@ extern "C" {
 		try {
 			LoadConfig();
 			OldWarning();
-			if (memcmp(*(const char**)MH::GameVersion::StringPtr, loader::GameVersion, 6) != 0)
+			if (memcmp((const char*)MH::GameVersion::String, loader::GameVersion, 6) != 0)
 			{
 				GameVersion = invalidVersion;
 				LOG(ERR) << "Build Number check failed.";
