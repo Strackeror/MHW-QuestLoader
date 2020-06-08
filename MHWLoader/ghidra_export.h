@@ -138,7 +138,7 @@ namespace MH {
     static bool(*StarCategoryCheck)(undefined8,undefined8,undefined8,undefined8) = (bool(*)(undefined8,undefined8,undefined8,undefined8))0x1541c5580;
     static undefined8(*CheckProgress)() = (undefined8(*)())0x1555f5120;
     namespace QuestData {
-      static void *ResourcePtr = (void*)0x144f4a719;
+      static void *ResourcePtr = (void*)0x144f4a718;
     }
     namespace QuestNoList {
       static void *ResourcePtr = (void*)0x144bfa2f8;
