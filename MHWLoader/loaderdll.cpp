@@ -21,7 +21,7 @@
 
 using namespace loader;
 
-const char* loader::GameVersion = "413161";
+const char* loader::GameVersion = "414136";
 const char* invalidVersion = "???";
 
 void InitCodeInjections()
