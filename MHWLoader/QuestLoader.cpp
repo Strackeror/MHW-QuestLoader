@@ -87,7 +87,7 @@ CreateHook(MH::Quest::CheckProgress, CheckQuestProgress, bool, void* save, int i
 	return original(save, id);
 }
 
-CreateHook(MH::Quest::UnknFilterFlag, CheckQuestFlag, bool, int id)
+/*CreateHook(MH::Quest::UnknFilterFlag, CheckQuestFlag, bool, int id)
 {
 	if (QuestExists(id))
 	{
@@ -95,7 +95,7 @@ CreateHook(MH::Quest::UnknFilterFlag, CheckQuestFlag, bool, int id)
 		return true;
 	}
 	return original(id);
-}
+}*/
 
 
 CreateHook(MH::Quest::OptionalCount, QuestCount, int, void)
@@ -196,7 +196,7 @@ void InjectQuestLoader()
 	QueueHook(QuestCount);
 	QueueHook(QuestFromIndex);
 
-	QueueHook(CheckQuestFlag);
+	//QueueHook(CheckQuestFlag);
 	QueueHook(CheckQuestComplete);
 	QueueHook(CheckQuestProgress);
 
