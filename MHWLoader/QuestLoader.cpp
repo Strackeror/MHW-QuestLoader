@@ -87,15 +87,16 @@ CreateHook(MH::Quest::CheckProgress, CheckQuestProgress, bool, void* save, int i
 	return original(save, id);
 }
 
-/*CreateHook(MH::Quest::UnknFilterFlag, CheckQuestFlag, bool, int id)
+CreateHook(MH::Quest::IsMasterRank, IsMasterRank, int, int id)
 {
 	if (QuestExists(id))
 	{
-		LOG(DEBUG) << "CheckQuestFlag : " << id;
-		return true;
+		int starcount = QuestIds.at(id)->starcount;
+		LOG(WARN) << "IsMasterRank" << SHOW(starcount);
+		return QuestIds.at(id)->starcount > 10;
 	}
 	return original(id);
-}*/
+}
 
 
 CreateHook(MH::Quest::OptionalCount, QuestCount, int, void)
@@ -186,6 +187,8 @@ CreateHook(MH::File::LoadResource, LoadObjFile, void*, void* fileMgr, void* objD
 	return object;
 }
 
+
+
 void InjectQuestLoader()
 {
 	if (!ConfigFile.value("enableQuestLoader", true)) return;
@@ -196,7 +199,7 @@ void InjectQuestLoader()
 	QueueHook(QuestCount);
 	QueueHook(QuestFromIndex);
 
-	//QueueHook(CheckQuestFlag);
+	QueueHook(IsMasterRank);
 	QueueHook(CheckQuestComplete);
 	QueueHook(CheckQuestProgress);
 

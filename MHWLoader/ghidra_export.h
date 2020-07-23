@@ -133,7 +133,7 @@ namespace MH {
     static bool(*CheckComplete)(longlong,int) = (bool(*)(longlong,int))0x14cfa66e0;
     static uint(*OptionalAt)(undefined *,int) = (uint(*)(undefined *,int))0x14cfc5910;
     static void *GlobalOptionalQuestList = (void*)0x144fb9ea0;
-    static ulonglong(*UnknFilterFlag)(ulonglong,uint,undefined8,undefined8) = (ulonglong(*)(ulonglong,uint,undefined8,undefined8))0x15efe3120;
+    static ulonglong(*IsMasterRank)(ulonglong,uint,undefined8,undefined8) = (ulonglong(*)(ulonglong,uint,undefined8,undefined8))0x15efe3120;
     static bool(*StarCategoryCheck)(undefined8,undefined8,undefined8,undefined8) = (bool(*)(undefined8,undefined8,undefined8,undefined8))0x14bda3600;
     static undefined8(*CheckProgress)() = (undefined8(*)())0x14cfa6a30;
     namespace QuestData {
