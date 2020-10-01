@@ -27,9 +27,6 @@
     <ClCompile Include="QuestLoader.cpp">
       <Filter>Source Files\mods</Filter>
     </ClCompile>
-    <ClCompile Include="ForceNativePC.cpp">
-      <Filter>Source Files\mods</Filter>
-    </ClCompile>
     <ClCompile Include="config.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

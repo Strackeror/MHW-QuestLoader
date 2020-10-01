@@ -21,7 +21,7 @@
 
 using namespace loader;
 
-const char* loader::GameVersion = "416251";
+const char* loader::GameVersion = "419914";
 const char* invalidVersion = "???";
 
 void InitCodeInjections()
@@ -31,7 +31,6 @@ void InitCodeInjections()
 
 	MH_Initialize();
 
-	InjectForceNativePC();
 	InjectSubspeciesLoader();
 	InjectQuestLoader();
 

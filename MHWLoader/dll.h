@@ -9,8 +9,6 @@
 extern nlohmann::json ConfigFile;
 void LoadConfig();
 
-void InjectForceNativePC();
-
 void InjectSubspeciesLoader();
 
 void InjectQuestLoader();

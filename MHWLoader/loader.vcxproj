@@ -73,7 +73,6 @@
   <ItemGroup>
     <ClCompile Include="config.cpp" />
     <ClCompile Include="loaderdll.cpp" />
-    <ClCompile Include="ForceNativePC.cpp" />
     <ClCompile Include="log.cpp" />
     <ClCompile Include="QuestLoader.cpp" />
     <ClCompile Include="SubspeciesLoader.cpp" />
