@@ -18,24 +18,11 @@
 #include "loader.h"
 #include "dll.h"
 #include "ghidra_export.h"
+#include "memory_patch.h"
 
 using namespace loader;
 
-const char* loader::GameVersion = "419914";
-const char* invalidVersion = "???";
-
-void InitCodeInjections()
-{
-	if (std::string(loader::GameVersion) == invalidVersion)
-		return;
-
-	MH_Initialize();
-
-	InjectSubspeciesLoader();
-	InjectQuestLoader();
-
-	MH_ApplyQueued();
-}
+const char* loader::GameVersion = "???";
 
 static void* currentModule;
 
@@ -92,6 +79,27 @@ void OldWarning() {
 	}
 }
 
+static std::string GameVersionString;
+
+void FindVersion() {
+  const auto CalcNumAOB = "48 8d 4c 24 30 4c 8d 42 f5";
+  auto data = parseHex(CalcNumAOB);
+  auto found = scanmem(data);
+  if (found.size() != 1) {
+    LOG(ERR) << "Build Number check failed.";
+    LOG(ERR) << "Could not find game version";
+    LOG(ERR) << "Loader needs to be updated.";
+    return;
+  }
+
+  byte* instruction = found[0] - 0x18;
+  char** exeGameVersion =
+    (char**)(instruction + *(uint32_t*)(instruction + 0x3) + 0x7);
+  GameVersionString = *exeGameVersion;
+  GameVersion = GameVersionString.c_str();
+}
+
+
 extern "C" {
 	__declspec(dllexport) extern void Initialize(void* memModule)
 	{
@@ -99,15 +107,9 @@ extern "C" {
 		try {
 			LoadConfig();
 			OldWarning();
-			if (memcmp((const char*)MH::GameVersion::String, loader::GameVersion, 6) != 0)
-			{
-				GameVersion = invalidVersion;
-				LOG(ERR) << "Build Number check failed.";
-				LOG(ERR) << "Wrong Version of MHW detected";
-				LOG(ERR) << "Loader needs to be updated.";
-			}
+			FindVersion();
 			LoadAllPluginDlls();
-			InitCodeInjections();
+			return;
 		}
 		catch (std::exception e)
 		{

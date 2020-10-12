@@ -74,8 +74,7 @@
     <ClCompile Include="config.cpp" />
     <ClCompile Include="loaderdll.cpp" />
     <ClCompile Include="log.cpp" />
-    <ClCompile Include="QuestLoader.cpp" />
-    <ClCompile Include="SubspeciesLoader.cpp" />
+    <ClCompile Include="memory_patch.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="loader-config.json">
@@ -86,6 +85,7 @@
   <ItemGroup>
     <ClInclude Include="..\external\MemoryModule\MemoryModule.h" />
     <ClInclude Include="ghidra_export.h" />
+    <ClInclude Include="memory_patch.h" />
     <ClInclude Include="util.h" />
     <ClInclude Include="loader.h" />
     <ClInclude Include="dll.h" />

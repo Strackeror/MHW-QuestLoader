@@ -30,7 +30,6 @@ CreateHook(MH::Monster::ctor, ConstructMonster, void*, void* this_ptr, unsigned 
 
 void InjectSubspeciesLoader()
 {
-	if (!ConfigFile.value("enableSubspeciesLoader", true)) return;
 	QueueHook(SpawnMonster);
 	QueueHook(ConstructMonster);
 }
