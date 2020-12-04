@@ -6,8 +6,13 @@
 #include <Psapi.h>
 
 #include <algorithm>
+#include <functional>
 #include <string>
 #include <vector>
+
+
+#include "loader.h"
+using namespace loader;
 
 std::vector<byte *> scanmem(const std::vector<byte> &bytes) {
   std::vector<byte *> results;
@@ -71,20 +76,19 @@ std::vector<byte *> scanmem(const std::vector<byte> &bytes,
       continue;
     byte *begin = (byte *)memInfo.BaseAddress;
     byte *end = begin + memInfo.RegionSize;
+    
+    auto predicate = [](byte a, std::tuple<byte, byte> b) {
+      auto [check, mask] = b;
+      return (a & mask) == (check & mask);
+    };
 
     byte *found = std::search(begin, end, maskedBytes.begin(),
-                              maskedBytes.end(), [](auto a, auto b) {
-                                auto [check, mask] = b;
-                                return (a & mask) == (check & mask);
-                              });
+                              maskedBytes.end(), predicate);
 
     while (found != end) {
       results.push_back(found);
-      found = std::search(begin, end, maskedBytes.begin(), maskedBytes.end(),
-                          [](auto a, auto b) {
-                            auto [check, mask] = b;
-                            return (a & mask) == (check & mask);
-                          });
+      found = std::search(found + 1, end, maskedBytes.begin(),
+                          maskedBytes.end(), predicate);
     }
 
     addr = end;
@@ -121,7 +125,7 @@ std::tuple<std::vector<byte>, std::vector<byte>> parseBinary(
     if (std::string("01.").find(c) == std::string::npos) continue;
     bitsRead += 1;
     currentByte = (currentByte << 1) + (c == '1');
-    currentMask = (currentMask << 1) + (c == '.');
+    currentMask = (currentMask << 1) + (c != '.');
     if (bitsRead == 8) {
       bitsRead = 0;
       data.push_back(currentByte);

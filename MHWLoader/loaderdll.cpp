@@ -81,10 +81,13 @@ void OldWarning() {
 
 static std::string GameVersionString;
 
+
 void FindVersion() {
-  const auto CalcNumAOB = "48 8d 4c 24 30 4c 8d 42 f5";
-  auto data = parseHex(CalcNumAOB);
-  auto found = scanmem(data);
+  const auto CalcNumBits =
+      "01001... 10001101 01001100 ..100100 00110000 01001... 10001101 01000010 "
+      "11110101";
+  auto [binData, binMask] = parseBinary(CalcNumBits);
+  auto found = scanmem(binData, binMask);
   if (found.size() != 1) {
     LOG(ERR) << "Build Number check failed.";
     LOG(ERR) << "Could not find game version";
