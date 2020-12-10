@@ -92,7 +92,7 @@
       <PreprocessorDefinitions>NDEBUG;CLUTCHREWORK_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)MHWLoader;$(SolutionDir)external\minhook\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)MHWLoader</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -127,7 +127,6 @@
       <PreprocessorDefinitions>_DEBUG;CLUTCHREWORK_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)dinput8-mhw;$(SolutionDir)external\minhook\include</AdditionalIncludeDirectories>
       <AdditionalOptions>/NODEFAULTLIBS %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
@@ -160,9 +159,6 @@
     <ClCompile Include="dllmain.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\external\minhook\build\VC15\libMinHook.vcxproj">
-      <Project>{f142a341-5ee0-442d-a15f-98ae9b48dbae}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\..\MHWLoader\loader.vcxproj">
       <Project>{47d7380a-7ca7-4fb5-a415-12e1fb99ff97}</Project>
     </ProjectReference>

@@ -474,3 +474,5 @@ dmypy.json
 # Pyre type checker
 .pyre/
 Plugins/ClutchRework/nativePC
+
+vcpkg_installed/

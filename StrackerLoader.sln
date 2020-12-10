@@ -3,20 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29009.5
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "external", "external", "{D26C22BC-B754-412D-8DF3-9802E1377C41}"
-	ProjectSection(SolutionItems) = preProject
-		external\json\nlohmann\json.hpp = external\json\nlohmann\json.hpp
-	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libMinHook", "external\minhook\build\VC15\libMinHook.vcxproj", "{F142A341-5EE0-442D-A15F-98AE9B48DBAE}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Plugins", "Plugins", "{12C6CB3B-8095-4EF0-BD7D-EF433D5EB95D}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DllLoader", "DllLoader\DllLoader.vcxproj", "{0E3B003F-F4E5-4DEA-9D17-B0B3260B0432}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MHWLoader", "MHWLoader\loader.vcxproj", "{47D7380A-7CA7-4FB5-A415-12E1FB99FF97}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MemoryModule", "external\MemoryModule\MemoryModule.vcxproj", "{0CFEC38B-1F44-41DC-9203-3973A8E14B2A}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "QuestLoader", "Plugins\QuestLoader\QuestLoader.vcxproj", "{72A3ADB0-9165-499A-B235-5A80AA3E22BA}"
 EndProject
@@ -30,14 +21,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.Debug|x64.ActiveCfg = Debug|x64
-		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.Debug|x64.Build.0 = Debug|x64
-		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.Debug|x86.ActiveCfg = Debug|Win32
-		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.Debug|x86.Build.0 = Debug|Win32
-		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.Release|x64.ActiveCfg = Release|x64
-		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.Release|x64.Build.0 = Release|x64
-		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.Release|x86.ActiveCfg = Release|Win32
-		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.Release|x86.Build.0 = Release|Win32
 		{0E3B003F-F4E5-4DEA-9D17-B0B3260B0432}.Debug|x64.ActiveCfg = Debug|x64
 		{0E3B003F-F4E5-4DEA-9D17-B0B3260B0432}.Debug|x64.Build.0 = Debug|x64
 		{0E3B003F-F4E5-4DEA-9D17-B0B3260B0432}.Debug|x86.ActiveCfg = Debug|Win32
@@ -53,14 +36,6 @@ Global
 		{47D7380A-7CA7-4FB5-A415-12E1FB99FF97}.Release|x64.ActiveCfg = Release|x64
 		{47D7380A-7CA7-4FB5-A415-12E1FB99FF97}.Release|x64.Build.0 = Release|x64
 		{47D7380A-7CA7-4FB5-A415-12E1FB99FF97}.Release|x86.ActiveCfg = Release|x64
-		{0CFEC38B-1F44-41DC-9203-3973A8E14B2A}.Debug|x64.ActiveCfg = Debug|x64
-		{0CFEC38B-1F44-41DC-9203-3973A8E14B2A}.Debug|x64.Build.0 = Debug|x64
-		{0CFEC38B-1F44-41DC-9203-3973A8E14B2A}.Debug|x86.ActiveCfg = Debug|Win32
-		{0CFEC38B-1F44-41DC-9203-3973A8E14B2A}.Debug|x86.Build.0 = Debug|Win32
-		{0CFEC38B-1F44-41DC-9203-3973A8E14B2A}.Release|x64.ActiveCfg = Release|x64
-		{0CFEC38B-1F44-41DC-9203-3973A8E14B2A}.Release|x64.Build.0 = Release|x64
-		{0CFEC38B-1F44-41DC-9203-3973A8E14B2A}.Release|x86.ActiveCfg = Release|Win32
-		{0CFEC38B-1F44-41DC-9203-3973A8E14B2A}.Release|x86.Build.0 = Release|Win32
 		{72A3ADB0-9165-499A-B235-5A80AA3E22BA}.Debug|x64.ActiveCfg = Debug|x64
 		{72A3ADB0-9165-499A-B235-5A80AA3E22BA}.Debug|x64.Build.0 = Debug|x64
 		{72A3ADB0-9165-499A-B235-5A80AA3E22BA}.Debug|x86.ActiveCfg = Debug|Win32
@@ -82,8 +57,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{F142A341-5EE0-442D-A15F-98AE9B48DBAE} = {D26C22BC-B754-412D-8DF3-9802E1377C41}
-		{0CFEC38B-1F44-41DC-9203-3973A8E14B2A} = {D26C22BC-B754-412D-8DF3-9802E1377C41}
 		{72A3ADB0-9165-499A-B235-5A80AA3E22BA} = {12C6CB3B-8095-4EF0-BD7D-EF433D5EB95D}
 		{F411664E-CC59-4B14-92BF-D9C361B86598} = {12C6CB3B-8095-4EF0-BD7D-EF433D5EB95D}
 	EndGlobalSection

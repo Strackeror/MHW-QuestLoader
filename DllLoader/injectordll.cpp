@@ -9,7 +9,7 @@
 #include <windows.h>
 #include <stdio.h>
 
-#include "../external/MemoryModule/MemoryModule.h"
+#include <MemoryModule.h>
 
 void LoadLoader() 
 {

@@ -13,6 +13,7 @@
     <RootNamespace>dinput8mhw</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <ProjectName>MHWLoader</ProjectName>
+    <VcpkgTriplet Condition="'$(Platform)'=='x64'">x64-windows-static</VcpkgTriplet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
@@ -36,6 +37,9 @@
     <LinkIncremental>false</LinkIncremental>
     <TargetName>loader</TargetName>
     <IncludePath>$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg">
+    <VcpkgEnableManifest>true</VcpkgEnableManifest>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -83,20 +87,11 @@
     </CopyFileToFolders>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\external\MemoryModule\MemoryModule.h" />
     <ClInclude Include="ghidra_export.h" />
     <ClInclude Include="memory_patch.h" />
     <ClInclude Include="util.h" />
     <ClInclude Include="loader.h" />
     <ClInclude Include="dll.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\external\MemoryModule\MemoryModule.vcxproj">
-      <Project>{0cfec38b-1f44-41dc-9203-3973a8e14b2a}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\external\minhook\build\VC15\libMinHook.vcxproj">
-      <Project>{f142a341-5ee0-442d-a15f-98ae9b48dbae}</Project>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

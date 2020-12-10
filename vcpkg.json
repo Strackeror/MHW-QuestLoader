@@ -1,0 +1,12 @@
+{
+    "name": "mhw-questloader",
+    "version-string": "15.00.10",
+    "dependencies": [
+      {
+        "name": "memorymodule",
+        "features": ["unicode"]
+      },
+      "minhook",
+      "nlohmann-json"
+    ]
+}

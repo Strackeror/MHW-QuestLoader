@@ -41,9 +41,6 @@
     <ClInclude Include="util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\external\MemoryModule\MemoryModule.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="memory_patch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
