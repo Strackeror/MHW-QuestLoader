@@ -1,0 +1,5 @@
+project(ClutchRework)
+FILE(GLOB ClutchReworkSources CONFIGURE_DEPENDS *.cpp)
+add_library(ClutchRework SHARED ${ClutchReworkSources})
+target_compile_features(ClutchRework PRIVATE cxx_std_17)
+target_link_libraries(ClutchRework PRIVATE loader minhook)

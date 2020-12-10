@@ -32,7 +32,7 @@ namespace loader {
 		LOG(const LOG& o) = delete;
 		LOG& operator=(const LOG& o) = delete;
 	public:
-		LOG(LogLevel level) :logLevel(level) {}
+		LOG(LogLevel level);
 		~LOG();
 
 		template<class T>

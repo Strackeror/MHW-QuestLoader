@@ -80,8 +80,11 @@ void _log(int l, const char* s)
 	logToConsole(l, stamp, s);
 }
 
+LOG::LOG(LogLevel level) :logLevel(level) {}		
+
 LOG::~LOG() {
 	stream << std::endl;
 	stream.flush();
 	_log((int)logLevel, stream.str().c_str());
 }
+

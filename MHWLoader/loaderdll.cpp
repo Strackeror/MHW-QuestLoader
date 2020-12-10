@@ -12,8 +12,8 @@
 #include <TlHelp32.h>
 
 
-#include "MemoryModule.h"
-#include "MinHook.h"
+#include <MemoryModule.h>
+#include <MinHook.h>
 
 #include "loader.h"
 #include "dll.h"

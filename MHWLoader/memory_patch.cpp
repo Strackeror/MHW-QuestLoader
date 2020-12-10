@@ -145,7 +145,7 @@ bool protect(void *ptr, size_t len, PDWORD oldp) {
   return VirtualProtect((LPVOID)(ptr), len, *oldp, &dummy);
 }
 
-bool p_memcpy(void *dst, void *src, size_t len) {
+void p_memcpy(void *dst, void *src, size_t len) {
   DWORD protection;
   unprotect(dst, len, &protection);
   memcpy_s(dst, len, src, len);

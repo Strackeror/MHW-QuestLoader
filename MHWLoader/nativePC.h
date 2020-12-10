@@ -1,7 +1,7 @@
 #pragma once
 
 #include <windows.h>
-#include "MinHook.h"
+#include <MinHook.h>
 
 typedef HRESULT(WINAPI* tDirectInput8Create)(HINSTANCE inst_handle, DWORD version, const IID& r_iid, LPVOID* out_wrapper, LPUNKNOWN p_unk);
 tDirectInput8Create oDirectInput8Create = nullptr;

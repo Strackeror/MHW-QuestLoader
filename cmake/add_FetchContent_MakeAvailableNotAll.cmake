@@ -1,0 +1,7 @@
+macro(FetchContent_MakeAvailableNotAll NAME)
+  FetchContent_GetProperties(${NAME})
+  if(NOT ${NAME}_POPULATED)
+    FetchContent_Populate(${NAME})
+    add_subdirectory(${${NAME}_SOURCE_DIR} ${${NAME}_BINARY_DIR} EXCLUDE_FROM_ALL)
+  endif()
+endmacro()

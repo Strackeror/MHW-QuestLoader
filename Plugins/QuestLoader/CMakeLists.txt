@@ -1,0 +1,5 @@
+project(QuestLoader)
+FILE(GLOB QuestLoaderSources CONFIGURE_DEPENDS *.cpp)
+add_library(QuestLoader SHARED ${QuestLoaderSources})
+target_compile_features(QuestLoader PRIVATE cxx_std_17)
+target_link_libraries(QuestLoader PRIVATE loader minhook)
