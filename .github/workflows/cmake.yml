@@ -1,0 +1,80 @@
+name: CMake
+
+on:
+  push:
+    branches: [ master ]
+    tags:
+    - 'v*'
+
+defaults:
+  run:
+    shell: bash
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Configure CMake
+      run: cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -S . -B build/ -A x64
+
+    - name: Build
+      # Execute the build.  You can specify a specific target with "--target <NAME>"
+      run: cmake --build build/ --config $BUILD_TYPE
+
+#     - name: Test
+#       working-directory: ${{runner.workspace}}/build
+#       shell: bash
+#       # Execute tests defined by the CMake configuration.  
+#       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
+#       run: ctest -C $BUILD_TYPE
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: Stracker Loader Release
+        path: ./build/**/Release/*
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Download build artifacts
+      uses: actions/download-artifact@v2
+      with:
+        name: Stracker Loader Release
+        path: build/
+          
+    - name: Bump version
+      run: |
+        # hacky workaround for the annotated tag push issue
+        GIT_REF=${GITHUB_REF##*/}
+        if [[ $GIT_REF == v* ]]
+        then
+          GIT_TAG=$GIT_REF
+        else
+          GIT_TAG=$(git describe --first-parent --abbrev=0)
+        fi
+        REV_COUNT=$(git rev-list $GIT_TAG..HEAD --count)
+        echo "GIT_TAG=$GIT_TAG.$REV_COUNT" >> $GITHUB_ENV
+
+    - name: Zip it
+      run: |
+        python scripts/package.py
+
+    - name: Create release with binaries
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh release create v$GIT_TAG -t "Release v$GIT_TAG" build/*.zip
