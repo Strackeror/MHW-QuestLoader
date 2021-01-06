@@ -172,7 +172,7 @@ CreateHook(MH::File::LoadResource, LoadObjFile, void*, void* fileMgr,
 }
 
 void InjectQuestLoader() {
-  if (loader::GameVersion != std::string("421409")) {
+  if (loader::GameVersion != std::string("421470")) {
     LOG(ERR) << "Quest Loader : Wrong version, please update the loader";
   }
 
