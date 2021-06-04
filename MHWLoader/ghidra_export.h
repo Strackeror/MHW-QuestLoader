@@ -15,14 +15,14 @@ namespace MH {
   namespace Quest {
     static undefined8(*ErrorCheck)() = (undefined8(*)())0x14114e510;
     static undefined8(*CheckProgress)() = (undefined8(*)())0x14135e260;
-    static undefined8(*GetCategory)(undefined8) = (undefined8(*)(undefined8))0x1486ed1d0;
+    static undefined8(*GetCategory)(undefined8) = (undefined8(*)(undefined8))0x1419875c0;
     static void *OptionalIdList = (void*)0x1432a7cb0;
     static bool(*CheckComplete)(longlong,uint) = (bool(*)(longlong,uint))0x14135e1e0;
     static undefined8(*OptionalCount)() = (undefined8(*)())0x141365290;
     static uint(*OptionalAt)(undefined *,int) = (uint(*)(undefined *,int))0x141365280;
-    static bool(*IsMasterRank)(undefined8,undefined8,undefined8,undefined8) = (bool(*)(undefined8,undefined8,undefined8,undefined8))0x1486f45e0;
+		static bool(*IsMasterRank)(undefined8, undefined8, undefined8, undefined8) = (bool(*)(undefined8, undefined8, undefined8, undefined8))0x1419885c0;
     static void *GlobalOptionalQuestList = (void*)0x145073258;
-    static bool(*StarCategoryCheck)(undefined8,ulonglong,undefined4,undefined8) = (bool(*)(undefined8,ulonglong,undefined4,undefined8))0x147bf85a0;
+    static bool(*StarCategoryCheck)(int,int,int) = (bool(*)(int,int,int))0x140f347b0;
     namespace QuestData {
       static void *ResourceVtable = (void*)0x143442ac0;
       static undefined8(*ResourceFunc)() = (undefined8(*)())0x141a22de0;

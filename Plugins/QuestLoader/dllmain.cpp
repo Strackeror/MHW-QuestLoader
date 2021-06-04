@@ -59,14 +59,14 @@ static void PopulateQuests() {
   AddedQuestCount = AddedQuests.size();
 }
 
-bool QuestExists(int id) { return QuestIds.find(id) != QuestIds.end(); }
+bool QuestExists(int id) { return QuestIds.count(id); }
 
 Quest* GetQuest(int id) { return QuestIds.find(id)->second; }
 
 CreateHook(MH::Quest::CheckComplete, CheckQuestComplete, bool, void* save,
            int id) {
   if (QuestExists(id)) {
-    LOG(INFO) << "CheckQuestComplete : " << id;
+    LOG(DEBUG) << "CheckQuestComplete : " << id;
     return true;
   }
   return original(save, id);
@@ -75,7 +75,7 @@ CreateHook(MH::Quest::CheckComplete, CheckQuestComplete, bool, void* save,
 CreateHook(MH::Quest::CheckProgress, CheckQuestProgress, bool, void* save,
            int id) {
   if (QuestExists(id)) {
-    LOG(INFO) << "CheckQuestProgress: " << id;
+    LOG(DEBUG) << "CheckQuestProgress: " << id;
     return true;
   }
   return original(save, id);
@@ -84,7 +84,7 @@ CreateHook(MH::Quest::CheckProgress, CheckQuestProgress, bool, void* save,
 CreateHook(MH::Quest::IsMasterRank, IsMasterRank, int, int id) {
   if (QuestExists(id)) {
     int starcount = QuestIds.at(id)->starcount;
-    LOG(INFO) << "IsMasterRank" << SHOW(starcount);
+    LOG(DEBUG) << "IsMasterRank" << SHOW(starcount);
     return QuestIds.at(id)->starcount > 10;
   }
   return original(id);
@@ -108,17 +108,14 @@ CreateHook(MH::Quest::OptionalAt, QuestFromIndex, int, void* this_ptr,
 
 CreateHook(MH::Quest::StarCategoryCheck, CheckStarAndCategory, bool,
            int questID, int category, int starCount) {
-  auto ret = original(questID, category, starCount);
   Quest* found;
   if (QuestExists(questID)) {
     found = GetQuest(questID);
-    LOG(DEBUG) << "CheckStarCategory" << SHOW(questID)
-               << SHOW(found->starcount);
     if (found->starcount == starCount && category == 1) {
       return true;
     }
   }
-  return ret;
+  return original(questID, category, starCount);
 }
 
 CreateHook(MH::Quest::GetCategory, GetQuestCategory, long long, int questID,
@@ -161,18 +158,20 @@ void ModifyQuestNoList(void* obj, char* file) {
 CreateHook(MH::File::LoadResource, LoadObjFile, void*, void* fileMgr,
            void* objDef, char* filename, int flag) {
   void* object = original(fileMgr, objDef, filename, flag);
-
+  
   if (flag == 1) {
-    if (objDef == MH::Quest::QuestData::ResourcePtr)
-      ModifyQuestData(object, filename);
-    if (objDef == MH::Quest::QuestNoList::ResourcePtr)
-      ModifyQuestNoList(object, filename);
+	  if (objDef == MH::Quest::QuestData::ResourcePtr) {
+		  ModifyQuestData(object, filename);
+	  }
+		if (objDef == MH::Quest::QuestNoList::ResourcePtr && filename == std::string("quest\\questNoList")) {
+		  ModifyQuestNoList(object, filename);
+	  }
   }
   return object;
 }
 
 void InjectQuestLoader() {
-  if (loader::GameVersion != std::string("421470")) {
+  if (loader::GameVersion != std::string("421471")) {
     LOG(ERR) << "Quest Loader : Wrong version, please update the loader";
   }
 
@@ -184,10 +183,10 @@ void InjectQuestLoader() {
   QueueHook(QuestCount);
   QueueHook(QuestFromIndex);
 
-  QueueHook(IsMasterRank);
   QueueHook(CheckQuestComplete);
   QueueHook(CheckQuestProgress);
 
+  QueueHook(IsMasterRank);
   QueueHook(GetQuestCategory);
   QueueHook(CheckStarAndCategory);
 

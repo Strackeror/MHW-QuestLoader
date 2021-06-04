@@ -32,7 +32,7 @@ CreateHook(MH::Monster::ctor, ConstructMonster, void*, void* this_ptr,
 }
 
 void InjectSubspeciesLoader() {
-  if (loader::GameVersion != std::string("421470")) {
+  if (loader::GameVersion != std::string("421471")) {
     LOG(ERR) << "Subspecies loader : Wrong version, please update the loader";
   }
 

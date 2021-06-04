@@ -72,10 +72,10 @@ void LoadAllPluginDlls()
 }
 
 void OldWarning() {
-	if (std::filesystem::exists("hid.dll")) {
-		LOG(ERR) << "Found old hid.dll in game folder.";
-		LOG(ERR) << "This dll is not used by the mod anymore, and might cause issues.";
-		LOG(ERR) << "Please delete hid.dll from the game's folder.";
+	if (std::filesystem::exists("dtdata.dll")) {
+		LOG(ERR) << "Found old dtdata.dll in game folder.";
+		LOG(ERR) << "This dll is not used by the mod anymore";
+		LOG(ERR) << "Please delete dtdata.dll from the game's folder.";
 	}
 }
 
@@ -109,7 +109,7 @@ extern "C" {
 		currentModule = memModule;
 		try {
 			LoadConfig();
-			OldWarning();
+			//OldWarning();
 			FindVersion();
 			LoadAllPluginDlls();
 			return;
