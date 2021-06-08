@@ -22,6 +22,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "QuestLoader", "Plugins\Ques
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MonsterLoader", "Plugins\MonsterLoader\MonsterLoader.vcxproj", "{F411664E-CC59-4B14-92BF-D9C361B86598}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MinimalDInput8Hook", "MinimalDInput8Hook\MinimalDInput8Hook.vcxproj", "{3A0BB475-BBE7-4D46-A071-5D86285A5DF8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -77,6 +79,14 @@ Global
 		{F411664E-CC59-4B14-92BF-D9C361B86598}.Release|x64.Build.0 = Release|x64
 		{F411664E-CC59-4B14-92BF-D9C361B86598}.Release|x86.ActiveCfg = Release|Win32
 		{F411664E-CC59-4B14-92BF-D9C361B86598}.Release|x86.Build.0 = Release|Win32
+		{3A0BB475-BBE7-4D46-A071-5D86285A5DF8}.Debug|x64.ActiveCfg = Debug|x64
+		{3A0BB475-BBE7-4D46-A071-5D86285A5DF8}.Debug|x64.Build.0 = Debug|x64
+		{3A0BB475-BBE7-4D46-A071-5D86285A5DF8}.Debug|x86.ActiveCfg = Debug|Win32
+		{3A0BB475-BBE7-4D46-A071-5D86285A5DF8}.Debug|x86.Build.0 = Debug|Win32
+		{3A0BB475-BBE7-4D46-A071-5D86285A5DF8}.Release|x64.ActiveCfg = Release|x64
+		{3A0BB475-BBE7-4D46-A071-5D86285A5DF8}.Release|x64.Build.0 = Release|x64
+		{3A0BB475-BBE7-4D46-A071-5D86285A5DF8}.Release|x86.ActiveCfg = Release|Win32
+		{3A0BB475-BBE7-4D46-A071-5D86285A5DF8}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
