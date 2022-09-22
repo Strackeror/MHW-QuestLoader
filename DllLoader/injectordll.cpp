@@ -8,7 +8,7 @@
 
 #include <windows.h>
 #include <stdio.h>
-
+#include "DInput8.h"
 #include "../external/MemoryModule/MemoryModule.h"
 
 void LoadLoader() 
@@ -29,8 +29,16 @@ void LoadLoader()
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
 	if (fdwReason == DLL_PROCESS_ATTACH) {
+		char path[MAX_PATH];
+		GetSystemDirectoryA(path, MAX_PATH);
+		strcat_s(path, "\\dinput8.dll");
+		hMod = LoadLibrary(path);
+		if (hMod > (HMODULE)31) {
+			oDirectInput8Create = (tDirectInput8Create)GetProcAddress(hMod, "DirectInput8Create");
+		}
+
 		LoadLoader();
 	}
-	return (FALSE);
+	return (TRUE);
 }
 
