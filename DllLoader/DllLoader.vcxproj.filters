@@ -24,14 +24,4 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
-  <ItemGroup>
-    <MASM Include="hid.asm">
-      <Filter>Source Files</Filter>
-    </MASM>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="hid.def">
-      <Filter>Source Files</Filter>
-    </None>
-  </ItemGroup>
 </Project>

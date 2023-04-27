@@ -52,6 +52,10 @@ namespace MH {
     namespace SoftenTimers {
       static undefined8(*WoundPartLocal)() = (undefined8(*)())0x140aff490;
     }
+    static undefined8(*MotionFromId)() = (undefined8(*)())0x141c1afa0;
+    static undefined8(*GetEmName)(uint) = (undefined8(*)(uint))0x1413af000;
+    static undefined8(*GenerateFilePaths)() = (undefined8(*)())0x141ceadc0;
+    static void *EmNameList = (void*)0x143f51c40;
   }
   namespace Weapon {
     namespace UI {
@@ -77,6 +81,7 @@ namespace MH {
   namespace String {
     static undefined8(*Format__)(undefined8,undefined8,undefined8,undefined8,undefined) = (undefined8(*)(undefined8,undefined8,undefined8,undefined8,undefined))0x1404649a0;
     static undefined8(*Format)() = (undefined8(*)())0x140306110;
+    static undefined8(*sPrintf)() = (undefined8(*)())0x14024c520;
   }
   namespace Chat {
     static undefined8(*BuildShowGameMessage_)() = (undefined8(*)())0x1419b5430;

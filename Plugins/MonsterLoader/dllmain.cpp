@@ -19,7 +19,7 @@ CreateHook(MH::EmSetter::CreateMonster, SpawnMonster, void, void* this_ptr,
   return original(this_ptr, unkn, ptr, flag);
 }
 
-CreateHook(MH::Monster::ctor, ConstructMonster, void*, void* this_ptr,
+CreateHook(MH::Monster::GenerateFilePaths, MonsterPaths, void*, void* this_ptr,
            unsigned int monster_id, unsigned int variant) {
   if (next_id) {
     LOG(INFO) << "Setting Subspecies : " << monster_id << ":" << next_id;
@@ -38,7 +38,7 @@ void InjectSubspeciesLoader() {
 
   MH_Initialize();
   QueueHook(SpawnMonster);
-  QueueHook(ConstructMonster);
+  QueueHook(MonsterPaths);
   MH_ApplyQueued();
 }
 
