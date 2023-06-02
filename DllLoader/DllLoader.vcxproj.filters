@@ -18,10 +18,27 @@
     <ClCompile Include="injectordll.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Dinput8.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\external\MemoryModule\MemoryModule.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DInput8.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="dinput8.def">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
 </Project>
