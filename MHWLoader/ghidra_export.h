@@ -12,93 +12,87 @@ typedef unsigned int uint;
 typedef unsigned short ushort;
 
 namespace MH {
+  namespace Monster {
+    static void(*dtor)(undefined8 *) = (void(*)(undefined8 *))0x141ca3a10;
+    static void *vptr = (void*)0x14344d718;
+    namespace DamageBehavior {
+      static undefined(*NextAction)() = (undefined(*)())0x1413966e0;
+    }
+    static bool(*LaunchAction)(undefined *,uint) = (bool(*)(undefined *,uint))0x141cc4590;
+    static undefined(*MotionFromId)() = (undefined(*)())0x141bfeab0;
+    static undefined *(*ctor)(undefined *,undefined4,undefined4) = (undefined *(*)(undefined *,undefined4,undefined4))0x141ca1130;
+    namespace SoftenTimers {
+      static undefined(*WoundPartLocal)() = (undefined(*)())0x140afba90;
+    }
+    static undefined(*GenerateFilePaths)() = (undefined(*)())0x141cce8f0;
+  }
   namespace Quest {
-    static undefined8(*ErrorCheck)() = (undefined8(*)())0x14114e510;
-    static undefined8(*CheckProgress)() = (undefined8(*)())0x14135e260;
-    static undefined8(*GetCategory)(undefined8) = (undefined8(*)(undefined8))0x1419875c0;
-    static void *OptionalIdList = (void*)0x1432a7cb0;
-    static bool(*CheckComplete)(longlong,uint) = (bool(*)(longlong,uint))0x14135e1e0;
-    static undefined8(*OptionalCount)() = (undefined8(*)())0x141365290;
-    static uint(*OptionalAt)(undefined *,int) = (uint(*)(undefined *,int))0x141365280;
-		static bool(*IsMasterRank)(undefined8, undefined8, undefined8, undefined8) = (bool(*)(undefined8, undefined8, undefined8, undefined8))0x1419885c0;
-    static void *GlobalOptionalQuestList = (void*)0x145073258;
-    static bool(*StarCategoryCheck)(int,int,int) = (bool(*)(int,int,int))0x140f347b0;
+    static undefined(*OptionalCount)() = (undefined(*)())0x141354f80;
+    static void *OptionalIdList = (void*)0x14324d980;
+    static uint(*OptionalAt)(undefined *,int) = (uint(*)(undefined *,int))0x141354f70;
+    static undefined(*IsMasterRank)() = (undefined(*)())0x141975440;
+    static void *GlobalOptionalQuestList = (void*)0x145010ae8;
+    static bool(*CheckComplete)(longlong,uint) = (bool(*)(longlong,uint))0x14134e280;
+    static undefined(*StarCategoryCheck)() = (undefined(*)())0x140f2b640;
+    static undefined(*CheckProgress)() = (undefined(*)())0x14134e310;
+    static undefined(*GetCategory)() = (undefined(*)())0x1419744e0;
     namespace QuestData {
-      static void *ResourceVtable = (void*)0x143442ac0;
-      static undefined8(*ResourceFunc)() = (undefined8(*)())0x141a22de0;
-      static void *ResourcePtr = (void*)0x14506ba18;
+      static void *ResourceVtable = (void*)0x1433e8750;
+      static undefined(*ResourceFunc)() = (undefined(*)())0x141a0f280;
+      static void *ResourcePtr = (void*)0x145009308;
     }
     namespace QuestNoList {
-      static void *ResourceVtable = (void*)0x142fdde48;
-      static undefined8(*ResourceFunc)() = (undefined8(*)())0x140479500;
-      static void *ResourcePtr = (void*)0x144d17e20;
+      static void *ResourceVtable = (void*)0x142f83b20;
+      static undefined(*ResourceFunc)() = (undefined(*)())0x140478520;
+      static void *ResourcePtr = (void*)0x144cb5e40;
     }
-  }
-  namespace Player {
-    static void *BasePtr = (void*)0x145073e80;
-    static undefined *(*GetPlayer)(undefined *) = (undefined *(*)(undefined *))0x141ba9280;
-  }
-  namespace Savefile {
-    static bool(*CheckFlag)(longlong,uint) = (bool(*)(longlong,uint))0x14136bdf0;
-  }
-  namespace Monster {
-    static void(*dtor)(undefined8 *) = (void(*)(undefined8 *))0x141cbff80;
-    static void *vptr = (void*)0x1434a7a20;
-    namespace DamageBehavior {
-      static undefined8(*NextAction)() = (undefined8(*)())0x1413a6bf0;
-    }
-    static bool(*LaunchAction)(undefined *,uint) = (bool(*)(undefined *,uint))0x141ce0a50;
-    static undefined *(*ctor)(undefined *,undefined4,undefined4) = (undefined *(*)(undefined *,undefined4,undefined4))0x141cbd6a0;
-    namespace SoftenTimers {
-      static undefined8(*WoundPartLocal)() = (undefined8(*)())0x140aff490;
-    }
-    static undefined8(*MotionFromId)() = (undefined8(*)())0x141c1afa0;
-    static undefined8(*GetEmName)(uint) = (undefined8(*)(uint))0x1413af000;
-    static undefined8(*GenerateFilePaths)() = (undefined8(*)())0x141ceadc0;
-    static void *EmNameList = (void*)0x143f51c40;
+    static undefined(*ErrorCheck)(undefined,undefined,undefined,undefined,undefined4,undefined8,undefined8,undefined2,undefined4) = (undefined(*)(undefined,undefined,undefined,undefined,undefined4,undefined8,undefined8,undefined2,undefined4))0x141144830;
   }
   namespace Weapon {
     namespace UI {
-      static undefined8(*CalcAwakenedElement)() = (undefined8(*)())0x1419900b0;
-      static uint(*CalcRawBloat)(uint,uint) = (uint(*)(uint,uint))0x141990080;
-      static void *RawBloatMultipliers = (void*)0x143410b78;
+      static undefined(*CalcAwakenedElement)() = (undefined(*)())0x14197cc30;
+      static uint(*CalcRawBloat)(uint,uint) = (uint(*)(uint,uint))0x14197cc00;
+      static void *RawBloatMultipliers = (void*)0x1433b6740;
       namespace Unkn {
-        static undefined8(*ConditionalElementalBloat)() = (undefined8(*)())0x14192cc00;
+        static undefined(*ConditionalElementalBloat)() = (undefined(*)())0x14191a7b0;
       }
-      static undefined8(*CalcElementalBloat)() = (undefined8(*)())0x1419900a0;
+      static undefined(*CalcElementalBloat)() = (undefined(*)())0x14197cc20;
     }
   }
   namespace EmSetter {
-    static undefined8(*CreateMonster)() = (undefined8(*)())0x141a7f4e0;
+    static undefined(*CreateMonster)() = (undefined(*)())0x141a6b4f0;
   }
   namespace List {
-    static void(*IncreaseCapacity)(void *,ulonglong) = (void(*)(void *,ulonglong))0x140249d10;
+    static void(*IncreaseCapacity)(void *,ulonglong) = (void(*)(void *,ulonglong))0x140249b20;
   }
   namespace GameVersion {
-    static undefined8(*CalcNum)() = (undefined8(*)())0x1418e61d0;
-    static void *StringPtr = (void*)0x143f4d1d0;
+    static undefined(*CalcNum)() = (undefined(*)())0x1418d4030;
+    static void *StringPtr = (void*)0x143eeb1f0;
   }
   namespace String {
-    static undefined8(*Format__)(undefined8,undefined8,undefined8,undefined8,undefined) = (undefined8(*)(undefined8,undefined8,undefined8,undefined8,undefined))0x1404649a0;
-    static undefined8(*Format)() = (undefined8(*)())0x140306110;
-    static undefined8(*sPrintf)() = (undefined8(*)())0x14024c520;
+    static undefined8(*Format__)(undefined8,undefined8,undefined8,undefined8,undefined) = (undefined8(*)(undefined8,undefined8,undefined8,undefined8,undefined))0x1404639a0;
+    static undefined(*Format)() = (undefined(*)())0x1403050f0;
   }
   namespace Chat {
-    static undefined8(*BuildShowGameMessage_)() = (undefined8(*)())0x1419b5430;
-    static void *MainPtr = (void*)0x14506d340;
-    static void(*ShowGameMessage)(undefined *,undefined *,float,uint,undefined1) = (void(*)(undefined *,undefined *,float,uint,undefined1))0x141a671f0;
+    static undefined(*BuildShowGameMessage_)() = (undefined(*)())0x1419a1fb0;
+    static void *MainPtr = (void*)0x14500ac30;
+    static void(*ShowGameMessage)(undefined *,undefined *,float,uint,undefined1) = (void(*)(undefined *,undefined *,float,uint,undefined1))0x141a53400;
     namespace Unkn {
-      static undefined8(*CallBuild)() = (undefined8(*)())0x1411c0c30;
+      static undefined(*CallBuild)() = (undefined(*)())0x1411b5e50;
     }
-    static undefined8(*BuildShowGameMessage)() = (undefined8(*)())0x1419b54d0;
+    static undefined(*BuildShowGameMessage)() = (undefined(*)())0x1419a2050;
   }
   namespace Damage {
-    static bool(*ApplySoftenBuildup)(longlong,longlong,float) = (bool(*)(longlong,longlong,float))0x1402c84d0;
+    static bool(*ApplySoftenBuildup)(longlong,longlong,float) = (bool(*)(longlong,longlong,float))0x1402c7850;
   }
   namespace File {
-    static undefined8(*LoadResource)() = (undefined8(*)())0x14223ef10;
+    static undefined(*LoadResource)() = (undefined(*)())0x1422214f0;
   }
   namespace QuestBoard {
-    static undefined8(*FilterQuestList)() = (undefined8(*)())0x141157940;
+    static undefined(*FilterQuestList)() = (undefined(*)())0x14114ce60;
+  }
+  namespace Player {
+    static undefined *(*GetPlayer)(undefined *) = (undefined *(*)(undefined *))0x141b8cde0;
+    static void *BasePtr = (void*)0x145011710;
   }
 }

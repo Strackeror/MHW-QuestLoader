@@ -131,8 +131,8 @@ CreateHook(MH::Quest::GetCategory, GetQuestCategory, long long, int questID,
 void ModifyQuestData(void* obj, char* file) {
   for (auto& quest : AddedQuests) {
     if (quest.questPath == std::string(file)) {
-      *(int*)((char*)obj + 0xb0 + 0x70) = (int)quest.file_id;
-      quest.starcount = *offsetPtr<unsigned char>(obj, 0xb0 + 0x74);
+      *(int*)((char*)obj + 0xb0 + 0x30) = (int)quest.file_id;
+      quest.starcount = *offsetPtr<unsigned char>(obj, 0xb0 + 0x34);
       LOG(INFO) << "Quest Data loaded : " << file << " "
                 << SHOW(quest.starcount);
     }
@@ -171,7 +171,7 @@ CreateHook(MH::File::LoadResource, LoadObjFile, void*, void* fileMgr,
 }
 
 void InjectQuestLoader() {
-  if (loader::GameVersion != std::string("421471")) {
+  if (loader::GameVersion != std::string("421631")) {
     LOG(ERR) << "Quest Loader : Wrong version, please update the loader";
   }
 
