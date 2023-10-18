@@ -436,6 +436,44 @@ PerformBaseRelocation(PMEMORYMODULE module, ptrdiff_t delta)
 }
 
 static BOOL
+RegisterExceptionHandling(PMEMORYMODULE module)
+{
+#ifdef _WIN64
+    PRUNTIME_FUNCTION pEntry;
+    DWORD count;
+    PIMAGE_DATA_DIRECTORY pDir = GET_HEADER_DICTIONARY(module, IMAGE_DIRECTORY_ENTRY_EXCEPTION);
+    if (pDir->Size == 0) {
+        return TRUE;
+    }
+
+    pEntry = (PRUNTIME_FUNCTION)(module->codeBase + pDir->VirtualAddress);
+    count = (pDir->Size / sizeof(RUNTIME_FUNCTION));
+    return RtlAddFunctionTable(pEntry, count, (DWORD64) module->codeBase);
+#else
+    // TODO(fancycode): Support 32bit exception handling.
+    return TRUE;
+#endif
+}
+
+static BOOL
+UnregisterExceptionHandling(PMEMORYMODULE module)
+{
+#ifdef _WIN64
+    PRUNTIME_FUNCTION pEntry;
+    PIMAGE_DATA_DIRECTORY pDir = GET_HEADER_DICTIONARY(module, IMAGE_DIRECTORY_ENTRY_EXCEPTION);
+    if (pDir->Size == 0) {
+        return TRUE;
+    }
+
+    pEntry = (PRUNTIME_FUNCTION)(module->codeBase + pDir->VirtualAddress);
+    return RtlDeleteFunctionTable(pEntry);
+#else
+    // TODO(fancycode): Support 32bit exception handling.
+    return TRUE;
+#endif
+}
+
+static BOOL
 BuildImportTable(PMEMORYMODULE module)
 {
     unsigned char *codeBase = module->codeBase;
@@ -725,6 +763,11 @@ HMEMORYMODULE MemoryLoadLibraryEx(const void *data, size_t size,
         goto error;
     }
 
+    // register exception handling table so "try { } catch ( ) { }"" works
+    if (!RegisterExceptionHandling(result)) {
+        goto error;
+    }
+
     // mark memory pages depending on section headers and release
     // sections that are marked as "discardable"
     if (!FinalizeSections(result)) {
@@ -866,6 +909,8 @@ void MemoryFreeLibrary(HMEMORYMODULE mod)
         DllEntryProc DllEntry = (DllEntryProc)(LPVOID)(module->codeBase + module->headers->OptionalHeader.AddressOfEntryPoint);
         (*DllEntry)((HINSTANCE)module->codeBase, DLL_PROCESS_DETACH, 0);
     }
+
+    UnregisterExceptionHandling(module);
 
     free(module->nameExportsTable);
     if (module->modules != NULL) {
