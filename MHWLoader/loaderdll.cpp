@@ -12,7 +12,6 @@
 #include <TlHelp32.h>
 
 
-#include "MemoryModule.h"
 #include "MinHook.h"
 
 #include "loader.h"
@@ -26,34 +25,6 @@ const char* loader::GameVersion = "???";
 
 static void* currentModule;
 
-HCUSTOMMODULE CustomLoadLibrary(const char* path, void* _) {
-	if (std::string(path) == "loader.dll") {
-		return currentModule;
-	}
-	return LoadLibraryA(path);
-}
-
-FARPROC CustomGetProcAddress(HCUSTOMMODULE target, const char* path, void* _) {
-	if (target == currentModule) {
-		return MemoryGetProcAddress(target, path);
-	}
-	return GetProcAddress((HMODULE)target, path);
-}
-
-auto LoadDll(const char* path)
-{
-	std::ifstream dll(path, std::ios::binary);
-	std::vector<char> dllRead(std::istreambuf_iterator<char>(dll), {});
-
-	size_t size = dllRead.size();
-	char* allocatedMem = (char*)malloc(size);
-	memcpy(allocatedMem, &dllRead[0], size);
-	
-	return MemoryLoadLibraryEx(allocatedMem, size, MemoryDefaultAlloc, MemoryDefaultFree, 
-		CustomLoadLibrary, CustomGetProcAddress, MemoryDefaultFreeLibrary, 
-		nullptr);
-}
-
 void LoadAllPluginDlls()
 {
 	if (!ConfigFile.value("enablePluginLoader", true)) return;
@@ -64,7 +35,7 @@ void LoadAllPluginDlls()
 		std::string name = entry.path().filename().string();
 		if (entry.path().filename().extension().string() != ".dll") continue;
 		LOG(INFO) << "Loading plugin " << entry.path();
-		auto dll = LoadDll(entry.path().string().c_str());
+		auto dll = LoadLibraryA(entry.path().string().c_str());
 		if (!dll)
 			LOG(ERR) << "Failed to load " << entry.path();
 
@@ -74,8 +45,8 @@ void LoadAllPluginDlls()
 void OldWarning() {
 	if (std::filesystem::exists("dtdata.dll") || std::filesystem::exists("hid.dll")) {
 		LOG(ERR) << "Found old dlls in game folder.";
-		LOG(ERR) << "Please delete hid.dll and dtdata.dll from the game folder";
-		LOG(ERR) << "They are obsolete files from previous versions of this mod";
+		LOG(ERR) << "Please delete hid.dll and/or dtdata.dll from the game folder if they exist.";
+		LOG(ERR) << "They are obsolete files from previous versions of this mod.";
 	}
 }
 
@@ -104,9 +75,8 @@ void FindVersion() {
 
 
 extern "C" {
-	__declspec(dllexport) extern void Initialize(void* memModule)
+	__declspec(dllexport) extern void Initialize()
 	{
-		currentModule = memModule;
 		try {
 			LoadConfig();
 			OldWarning();

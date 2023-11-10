@@ -91,9 +91,6 @@
     <ClInclude Include="dll.h" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\external\MemoryModule\MemoryModule.vcxproj">
-      <Project>{0cfec38b-1f44-41dc-9203-3973a8e14b2a}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\external\minhook\build\VC15\libMinHook.vcxproj">
       <Project>{f142a341-5ee0-442d-a15f-98ae9b48dbae}</Project>
     </ProjectReference>

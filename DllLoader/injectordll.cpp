@@ -9,22 +9,18 @@
 #include <windows.h>
 #include <stdio.h>
 #include "DInput8.h"
-#include "../external/MemoryModule/MemoryModule.h"
 
 void LoadLoader() 
 {
-	const char path[] = "loader.dll";
-	std::ifstream dll(path, std::ios::binary);
-	std::vector<char> dllRead(std::istreambuf_iterator<char>(dll), {});
-
-	size_t size = dllRead.size();
-	char* allocatedMem = (char*) malloc(size);
-	if (!allocatedMem)
+	const char path[] = "./loader.dll";
+	auto module = LoadLibraryA(path);
+	if (!module) {
+		MessageBoxA(nullptr, "Stracker's loader error", "loader.dll not found", 1);
 		return;
-	memcpy(allocatedMem, &dllRead[0], size);
-	auto target = MemoryLoadLibrary(allocatedMem, size);
-	typedef void(*initF)(void*);
-	((initF)MemoryGetProcAddress(target, "Initialize"))(target);
+	}
+	auto initialize = GetProcAddress(module, "Initialize");
+	initialize();
+
 }
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
