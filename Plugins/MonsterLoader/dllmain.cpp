@@ -32,7 +32,7 @@ CreateHook(MH::Monster::GenerateFilePaths, MonsterPaths, void*, void* this_ptr,
 }
 
 void InjectSubspeciesLoader() {
-  if (loader::GameVersion != std::string("421631")) {
+  if (loader::GameVersion != std::string("421652")) {
     LOG(ERR) << "Subspecies loader : Wrong version, please update the loader";
   }
 
