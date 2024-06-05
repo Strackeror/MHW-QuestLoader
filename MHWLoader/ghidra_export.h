@@ -86,7 +86,7 @@ namespace MH {
     static bool(*ApplySoftenBuildup)(longlong,longlong,float) = (bool(*)(longlong,longlong,float))0x1402c7850;
   }
   namespace File {
-    static undefined(*LoadResource)() = (undefined(*)())0x1422214f0;
+    static undefined(*LoadResource)() = (undefined(*)())0x142221550;
   }
   namespace QuestBoard {
     static undefined(*FilterQuestList)() = (undefined(*)())0x14114ce60;
