@@ -11,8 +11,9 @@ with ZipFile('build/Loader-Release.zip', 'w') as zip:
     zip.write("build/Release/QuestLoader.dll", "nativePC/plugins/QuestLoader.dll")
     zip.write("build/Release/MonsterLoader.dll", "nativePC/plugins/MonsterLoader.dll")
 
-shutil.copyfile("build/Release/loader.lib", "Plugins/dependencies/loader.lib")
-shutil.copyfile("MHWLoader/loader.h", "Plugins/dependencies/loader.h")
+with ZipFile('build/Loader-Plugin.zip', 'w') as zip:
+    zip.write("build/Release/loader.lib", "loader.lib")
+    zip.write("MHWLoader/loader.h", "loader.h")
 
 
 

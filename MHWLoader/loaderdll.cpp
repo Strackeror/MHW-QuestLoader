@@ -9,8 +9,7 @@
 
 #include "loader.h"
 #include "dll.h"
-#include "ghidra_export.h"
-#include "memory_patch.h"
+#include "scanmem.h"
 
 using namespace loader;
 

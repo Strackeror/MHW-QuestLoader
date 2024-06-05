@@ -16,7 +16,6 @@ add_library(loader SHARED
   MHWLoader/config.cpp
   MHWLoader/loaderdll.cpp
   MHWLoader/log.cpp
-  MHWLoader/memory_patch.cpp
 )
 target_include_directories(loader PRIVATE external/json PUBLIC MHWLoader)
 target_link_libraries(loader PRIVATE minhook)
