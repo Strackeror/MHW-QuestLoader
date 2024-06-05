@@ -1,11 +1,9 @@
 #pragma once
 #include <windows.h>
 #include <sdkddkver.h>
-
 #include <sstream>
-#include <vector>
 
-#ifdef DINPUT8MHW_EXPORTS
+#ifdef MHWLOADER_EXPORTS
 #define DllExport   __declspec( dllexport )
 #else
 #define DllExport   __declspec( dllimport )

@@ -1,9 +1,4 @@
-// dllmain.cpp : Defines the entry point for the DLL application.
-
 #include <filesystem>
-#include <sstream>
-#include <fstream>
-#include <iterator>
 #include <vector>
 
 #include <SDKDDKVer.h>
@@ -11,8 +6,6 @@
 #include <winternl.h>
 #include <TlHelp32.h>
 
-
-#include "MinHook.h"
 
 #include "loader.h"
 #include "dll.h"

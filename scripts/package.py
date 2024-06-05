@@ -4,14 +4,14 @@ import shutil
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)) + '/..')
 
-with ZipFile('x64/Loader-Release.zip', 'w') as zip:
-    zip.write("x64/Release/loader.dll", "loader.dll")
-    zip.write("x64/Release/dinput8.dll", "dinput8.dll")
-    zip.write("x64/Release/loader-config.json", "loader-config.json")
-    zip.write("x64/Release/QuestLoader.dll", "nativePC/plugins/QuestLoader.dll")
-    zip.write("x64/Release/MonsterLoader.dll", "nativePC/plugins/MonsterLoader.dll")
+with ZipFile('build/Loader-Release.zip', 'w') as zip:
+    zip.write("build/Release/loader.dll", "loader.dll")
+    zip.write("build/Release/dinput8.dll", "dinput8.dll")
+    zip.write("MHWLoader/loader-config.json", "loader-config.json")
+    zip.write("build/Release/QuestLoader.dll", "nativePC/plugins/QuestLoader.dll")
+    zip.write("build/Release/MonsterLoader.dll", "nativePC/plugins/MonsterLoader.dll")
 
-shutil.copyfile("x64/Release/loader.lib", "Plugins/dependencies/loader.lib")
+shutil.copyfile("build/Release/loader.lib", "Plugins/dependencies/loader.lib")
 shutil.copyfile("MHWLoader/loader.h", "Plugins/dependencies/loader.h")
 
 

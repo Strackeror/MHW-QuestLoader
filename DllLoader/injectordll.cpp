@@ -1,13 +1,4 @@
-
-#include <vector>
-#include <fstream>
-#include <sstream>
-#include <iterator>
-#include <iostream>
-#include <string>
-
 #include <windows.h>
-#include <stdio.h>
 #include "DInput8.h"
 
 void LoadLoader() 

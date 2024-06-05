@@ -6,13 +6,9 @@
 #include <Psapi.h>
 
 #include <algorithm>
-#include <functional>
 #include <string>
 #include <vector>
 
-
-#include "loader.h"
-using namespace loader;
 
 std::vector<byte *> scanmem(const std::vector<byte> &bytes) {
   std::vector<byte *> results;
@@ -135,19 +131,4 @@ std::tuple<std::vector<byte>, std::vector<byte>> parseBinary(
     }
   }
   return {data, mask};
-}
-
-bool unprotect(void *ptr, size_t len, PDWORD oldp) {
-  return VirtualProtect((LPVOID)(ptr), len, PAGE_EXECUTE_READWRITE, oldp);
-}
-bool protect(void *ptr, size_t len, PDWORD oldp) {
-  DWORD dummy;
-  return VirtualProtect((LPVOID)(ptr), len, *oldp, &dummy);
-}
-
-bool p_memcpy(void *dst, void *src, size_t len) {
-  DWORD protection;
-  unprotect(dst, len, &protection);
-  memcpy_s(dst, len, src, len);
-  protect(dst, len, &protection);
 }

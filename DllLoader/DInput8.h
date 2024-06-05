@@ -1,6 +1,5 @@
 #pragma once
-#include <Unknwn.h>
-#include "stdafx.h"
+#include <windows.h>
 
 typedef HRESULT(WINAPI* tDirectInput8Create)(HINSTANCE inst_handle, DWORD version, const IID& r_iid, LPVOID* out_wrapper, LPUNKNOWN p_unk);
 
@@ -9,7 +8,7 @@ extern HMODULE hMod;
 
 extern "C"
 {
-	DINPUT8_API HRESULT WINAPI DirectInput8Create(
+	__declspec(dllexport) HRESULT WINAPI DirectInput8Create(
 		HINSTANCE inst_handle,
 		DWORD version,
 		const IID& r_iid,
