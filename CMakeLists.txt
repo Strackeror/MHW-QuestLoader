@@ -23,10 +23,14 @@ target_compile_features(loader PRIVATE cxx_std_20)
 target_compile_definitions(loader PRIVATE MHWLOADER_EXPORTS)
 set_property(TARGET loader PROPERTY CXX_STANDARD 20)
 
+add_library(plugin_utils INTERFACE)
+target_include_directories(plugin_utils INTERFACE Plugins/utils)
+target_link_libraries(plugin_utils INTERFACE loader)
+
 add_library(QuestLoader SHARED Plugins/QuestLoader/dllmain.cpp)
-target_link_libraries(QuestLoader PRIVATE loader minhook)
+target_link_libraries(QuestLoader PRIVATE loader minhook plugin_utils)
 target_compile_features(QuestLoader PRIVATE cxx_std_20)
 
 add_library(MonsterLoader SHARED Plugins/MonsterLoader/dllmain.cpp)
-target_link_libraries(MonsterLoader PRIVATE loader minhook)
+target_link_libraries(MonsterLoader PRIVATE loader minhook plugin_utils)
 target_compile_features(MonsterLoader PRIVATE cxx_std_20)

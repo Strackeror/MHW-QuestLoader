@@ -1,1 +1,3 @@
-BasedOnStyle: Chromium
+BasedOnStyle: LLVM
+LambdaBodyIndentation: OuterScope
+ColumnLimit: 120
